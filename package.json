@@ -1,0 +1,12 @@
+{
+  "name": "luma-desk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Luma Desk church lighting studio — current interactive prototype and Codex handoff",
+  "scripts": {
+    "start": "node scripts/serve.cjs",
+    "dev": "node scripts/serve.cjs",
+    "test": "node tests/preview-engine.cjs index.html && node tests/preview-dom.cjs index.html"
+  },
+  "engines": { "node": ">=18" }
+}
