@@ -10,3 +10,11 @@ Read `docs/HANDOFF.md` before changing the application. `index.html` is the curr
 - Preserve compatibility with existing project JSON where practical. Saving must retain fixture appearance, scene looks, effects, and stage guides.
 - Do not use the older Python interface as a replacement for the latest UI.
 - No dependencies are currently required. Add tooling only when it helps the requested change.
+
+## Cloud development and online change links
+
+- The user wants the project kept in `almudeno89/LumaDesk` on GitHub and developed in the cloud, without requiring local downloads.
+- After completing and validating an authorized change, commit and push it to the appropriate remote branch. Preserve concurrent changes; never force-push or overwrite remote work. Respect any branch protection and use a pull request when required.
+- In every completion report for a saved and pushed edit, include a clickable GitHub link to each changed file (group long lists when useful) and the commit or pull request showing the changes. Clearly distinguish local-only edits from successfully pushed changes.
+- When a website deployment is requested, verify deployment before claiming the app is live. Include the verified app URL and say if deployment is pending or blocked. A GitHub file link displays source, not the running app.
+- See `docs/ONLINE.md` for the repository links, publishing instructions, and current storage limitations.
