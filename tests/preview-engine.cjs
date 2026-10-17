@@ -117,5 +117,14 @@ const st=fresh();st.act({op:'fixture',ids:['f9'],patch:{strobe:.1}},0);assert(st
  e.act({op:'save_scene',name:'Held target',fade:0},20);e.act({op:'aim',ids:['f9'],patch:{pan:.6,tilt:.4}},21);e.act({op:'cue',id:e.project.scenes.at(-1).id},22);close(e.snapshot(22).looks.f9.pan,.12);close(e.snapshot(22).looks.f9.tilt,.89);assert.equal(e.project.effects.f9.motion,undefined);
  console.log('PASS: orientation defaults/validation/export/duplicate; manual aim holds evaluated movement, preserves color/dimmer and other scene fades, validates atomically and saves static scene targets.');
 }
+{
+ const e=fresh(),legacy=e.copy(e.project);legacy.fixtures.forEach(f=>{for(const k of ['aimEnabled','beamTarget','pinspotTargets','pinspotLens','pinspotAngle'])delete f[k]});const imported=new LumaPreviewEngine(legacy);assert.equal(imported.project.fixtures[0].aimEnabled,false);assert.equal(imported.project.fixtures.find(f=>f.id==='f9').aimEnabled,true);
+ const frame=e.snapshot(0).frame,scenes=JSON.stringify(e.project.scenes),targets=Array(6).fill(null);targets[2]={x:.23,y:.84};
+ e.act({op:'edit_fixture',id:'f1',patch:{appearance:'pinspot-bar',aimEnabled:true,beamTarget:{x:0,y:1},pinspotTargets:targets,pinspotLens:'custom',pinspotAngle:17.5}},0);
+ assert.deepEqual(e.snapshot(0).frame,frame);assert.equal(JSON.stringify(e.project.scenes),scenes);const copy=new LumaPreviewEngine(e.copy(e.project)).project.fixtures[0];assert.equal(copy.pinspotTargets[2].x,.23);assert.equal(copy.pinspotAngle,17.5);assert.equal(copy.aimEnabled,true);assert.deepEqual(copy.beamTarget,{x:0,y:1});
+ e.act({op:'edit_fixture',id:'f1',patch:{aimEnabled:false}},0);assert.deepEqual(e.project.fixtures[0].pinspotTargets,targets);e.act({op:'duplicate_fixture',id:'f1'},0);assert.deepEqual(e.project.fixtures.at(-1).pinspotTargets,targets);assert.notEqual(e.project.fixtures.at(-1).pinspotTargets,e.project.fixtures[0].pinspotTargets);
+ for(const patch of [{aimEnabled:1},{beamTarget:{x:-.1,y:.2}},{beamTarget:{x:0,y:NaN}},{pinspotTargets:[]},{pinspotTargets:Array(6).fill({x:1,y:2})},{pinspotLens:'unknown'},{pinspotAngle:0},{pinspotAngle:91}]){const before=JSON.stringify(e.project);assert.throws(()=>e.act({op:'edit_fixture',id:'f1',patch},0));assert.equal(JSON.stringify(e.project),before)}
+ console.log('PASS: static aim/lens metadata migration, bounds and atomic validation, no channel/scene changes, off preserves targets, duplicate/export/import persistence.');
+}
 console.log('PASS: continuous brightness/color/motion, cycle bounds and timing, fade-in/out, deterministic flicker, group offsets, movement filtering and DMX values, pause/resume with blackout, tempo continuity, animated scene recall and export, invalid-data atomicity, live strobe and stop-all.');
 `,{console,assert,performance,Set,Map,Math},{timeout:6000});

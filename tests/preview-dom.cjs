@@ -233,5 +233,24 @@ vm.runInContext(`
  console.log('PASS: individual lens origins/parallel targets, pinspot versus wash spread, no duplicate center optics, shared live color/brightness, appearance transitions and unchanged DMX output.');
 }
 `,ctx,{timeout:5000});
+vm.runInContext(`
+{
+ const saved=localPreview.copy(localPreview.project);act({op:'fx_stop',seconds:0});setTool('select');switchTab('stage');setSelection(['f1']);
+ assert.equal($('selected-aim-enabled').checked,false);$('selected-aim-enabled').checked=true;$('selected-aim-enabled').dispatch('change');assert(state.project.fixtures.find(f=>f.id==='f1').aimEnabled);assert.equal($('quick-aim-enabled').checked,true);
+ const frame=JSON.stringify(state.frame),h=aimHandles.get('f1').aim;assert.equal(h.hidden,false);h.dispatch('pointerdown');h.dispatch('pointermove',{clientX:740,clientY:186});assert.equal(state.project.fixtures.find(f=>f.id==='f1').beamTarget,null);h.dispatch('pointerup');assert.deepEqual(state.project.fixtures.find(f=>f.id==='f1').beamTarget,{x:.8,y:.2});assert.equal(JSON.stringify(state.frame),frame);
+ h.dispatch('pointerdown');h.dispatch('pointermove',{clientX:200,clientY:200});h.dispatch('pointercancel');assert.deepEqual(state.project.fixtures.find(f=>f.id==='f1').beamTarget,{x:.8,y:.2});
+ $('quick-aim-enabled').checked=false;$('quick-aim-enabled').dispatch('change');assert(h.hidden);assert.equal(stageLightGeometry(state.project.fixtures.find(f=>f.id==='f1'),state.looks.f1).target.x,800);h.dispatch('pointerdown');assert.equal(stageAimGesture,null);
+ $('selected-appearance').value='pinspot-bar';$('selected-appearance').dispatch('change');$('selected-aim-enabled').checked=true;$('selected-aim-enabled').dispatch('change');const handles=aimHandles.get('f1');assert.equal(handles.heads.length,6);assert(handles.heads.every(h=>!h.hidden));assert(handles.aim.hidden);
+ handles.heads[2].dispatch('pointerdown');handles.heads[2].dispatch('pointermove',{clientX:260,clientY:401});handles.heads[2].dispatch('pointerup');const f=state.project.fixtures.find(f=>f.id==='f1');assert.deepEqual(f.pinspotTargets[2],{x:.2,y:.7});assert(f.pinspotTargets.filter(Boolean).length===1);const before=fixtureEmitterGeometry(f,state.looks.f1,$('stage').getBoundingClientRect());
+ $('selected-pinspot-lens').value='wide';$('selected-pinspot-lens').dispatch('change');const after=fixtureEmitterGeometry(state.project.fixtures.find(f=>f.id==='f1'),state.looks.f1,$('stage').getBoundingClientRect());assert(after[2].radius>before[2].radius);assert.deepEqual(after[2].target,before[2].target);
+ $('quick-pinspot-head').value='2';$('quick-pinspot-head').dispatch('change');assert.equal(handles.heads.filter(h=>!h.hidden).length,1);assert.equal(handles.heads[2].hidden,false);
+ $('selected-pinspot-lens').value='custom';$('selected-pinspot-lens').dispatch('change');assert.equal($('selected-pinspot-angle-wrap').hidden,false);$('selected-pinspot-angle').value='12.5';$('selected-pinspot-angle').dispatch('change');assert.equal(pinspotBeamAngle(state.project.fixtures.find(f=>f.id==='f1')),12.5);
+ $('selected-reset-aim').click();assert(state.project.fixtures.find(f=>f.id==='f1').pinspotTargets.every(p=>p===null));assert.equal(state.project.fixtures.find(f=>f.id==='f1').beamTarget,null);
+ // Every remaining static appearance, including the diffuse strip, gets a usable target.
+ for(const shape of ['par','wash','fresnel','led-bar','moving-head']){act({op:'fixture',ids:['f1'],patch:{appearance:shape}},true);const a=aimHandles.get('f1').aim;assert.equal(a.hidden,false);a.dispatch('keydown',{key:'ArrowRight'});assert(state.project.fixtures.find(f=>f.id==='f1').beamTarget);if(shape==='led-bar')assert.equal(liveLightNodes.get('f1').cone.getAttribute('display'),'')}
+ pinspotHeadView='all';act({op:'import',project:saved},true);setSelection([]);
+ console.log('PASS: per-light on/off switch, draft/cancel/commit static targets without channel changes, six independent head targets, locked aim, lens width/custom settings, overlap head selector, reset and all fixture shapes.');
+}
+`,ctx,{timeout:5000});
 ctx.URL={createObjectURL(){return'blob:test'},revokeObjectURL(){}};
 vm.runInContext(`importPhoto({name:'stage.jpg',type:'image/jpeg',size:3}).then(()=>{assert.equal(state.project.space.mode,'photo');assert.equal(tool,'arrange');assert.equal($('space-photo').hidden,false);console.log('PASS: photo decoding/canvas import workflow with a stub image decoder.');})`,ctx);
