@@ -57,5 +57,28 @@ const st=fresh();st.act({op:'fixture',ids:['f9'],patch:{strobe:.1}},0);assert(st
  assert.throws(()=>full.act({op:'duplicate_fixture',id:'missing'},0));assert.throws(()=>full.act({op:'remove_fixture',id:'missing'},0));
  console.log('PASS: light edits preserve live effects; invalid edits are atomic; profile changes clean unsupported scene effects; duplicate starts off, fills patch holes and respects limits; removal preserves other lights and fades; edited projects round-trip.');
 }
+// Measurements are optional, validated independently of lighting channels, and persist with the space.
+{
+ const e=fresh(),legacy=e.copy(e.project);delete legacy.space.unit;delete legacy.space.widthM;delete legacy.space.depthM;delete legacy.space.elevationM;legacy.fixtures.forEach(f=>delete f.mountHeightM);
+ const migrated=new LumaPreviewEngine(legacy);assert.equal(migrated.project.space.widthM,null);assert.equal(migrated.project.space.unit,'m');assert(migrated.project.fixtures.every(f=>f.mountHeightM===null));
+ e.act({op:'cue',id:'luma-living-light-demo'},10);const fade=e.fade,run=e.fxRuns.get('f9:motion'),frame=e.snapshot(10.5).frame;
+ e.act({op:'space',space:{...e.project.space,widthM:12,depthM:7,elevationM:.8,unit:'ft',stageShape:'thrust',floor:'wood',ambience:'warm',grid:false,snap:true,labels:false,measurements:true,accent:'#abcdef'}},10.5);
+ e.act({op:'edit_fixture',id:'f9',patch:{mountHeightM:4.572}},10.5);
+ assert.equal(e.fade,fade);assert.equal(e.fxRuns.get('f9:motion'),run);assert.deepEqual(e.snapshot(10.5).frame,frame);
+ assert.equal(e.project.fixtures.find(f=>f.id==='f9').mountHeightM,4.572);
+ for(const patch of [{widthM:0},{widthM:-1},{depthM:Infinity},{elevationM:-1},{widthM:501},{unit:'yards'},{floor:'bad'},{stageShape:'bad'},{ambience:'bad'},{snap:'yes'},{grid:1},{accent:'red'}]){
+  const before=JSON.stringify(e.project);assert.throws(()=>e.act({op:'space',space:{...e.project.space,...patch}},10.5));assert.equal(JSON.stringify(e.project),before);
+ }
+ for(const mountHeightM of [-1,NaN,Infinity,101,'12']){const before=JSON.stringify(e.project);assert.throws(()=>e.act({op:'edit_fixture',id:'f9',patch:{mountHeightM}},10.5));assert.equal(JSON.stringify(e.project),before)}
+ e.act({op:'duplicate_fixture',id:'f9'},10.5);const duplicate=e.project.fixtures.at(-1);assert.equal(duplicate.mountHeightM,4.572);assert.equal(duplicate.level,0);
+ e.act({op:'edit_fixture',id:'f9',patch:{mountHeightM:0}},10.5);assert.equal(e.project.fixtures.find(f=>f.id==='f9').mountHeightM,0);
+ e.act({op:'edit_fixture',id:'f9',patch:{mountHeightM:null}},10.5);assert.equal(e.project.fixtures.find(f=>f.id==='f9').mountHeightM,null);
+ const objects=['lectern','keyboard','stairs','cross','table','rug'].map((kind,i)=>({id:'decor-'+i,kind,name:kind,x:40,y:50,width:15,height:20,rotation:12,color:'#9faacc',locked:i===0}));
+ e.act({op:'space',space:{...e.project.space,objects:[...e.project.space.objects,...objects]}},10.5);
+ const round=new LumaPreviewEngine(JSON.parse(JSON.stringify(e.project)));assert.deepEqual(round.project.space,e.project.space);assert.equal(round.project.fixtures.at(-1).mountHeightM,4.572);assert.equal(round.project.space.objects[1].locked,true);
+ for(const patch of [{color:'javascript:bad'},{locked:'true'},{rotation:181},{name:' '},{kind:'unknown'}]){const before=JSON.stringify(e.project);assert.throws(()=>e.act({op:'space',space:{...e.project.space,objects:[{...objects[0],...patch}]}},10.5));assert.equal(JSON.stringify(e.project),before)}
+ e.act({op:'space',space:{...e.project.space,widthM:null,depthM:null,elevationM:null}},10.5);assert.equal(e.project.space.widthM,null);assert.equal(e.project.space.objects.length,7);
+ console.log('PASS: optional physical measurements and legacy defaults, zero versus unset height, metadata preserves output/effects/fades, bounds and style validation are atomic, extended objects and measured duplicate survive export/import.');
+}
 console.log('PASS: continuous brightness/color/motion, cycle bounds and timing, fade-in/out, deterministic flicker, group offsets, movement filtering and DMX values, pause/resume with blackout, tempo continuity, animated scene recall and export, invalid-data atomicity, live strobe and stop-all.');
 `,{console,assert,performance,Set,Map,Math},{timeout:6000});

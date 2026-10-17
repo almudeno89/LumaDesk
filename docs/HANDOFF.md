@@ -33,6 +33,16 @@ The shared Add/Change dialog shows validation errors inline. Metadata and appear
 
 Engine and DOM-shim regression checks cover these operations. Chromium checks at desktop, laptop, and narrow viewport sizes exercise real context-menu events, keyboard focus, editing errors, copy/remove actions, group selection, arrangement, controls, and menu placement. These are browser simulation checks, not physical-lighting tests. Safari on an actual Mac remains untested.
 
+### Expanded Space designer (October 17, 2026)
+
+The user requested a more customizable stage and optional real-world stage dimensions and light mounting heights. Space now uses its own independently scrolling right-hand inspector with Stage, Objects, and Reference sections. Done restores the approved light inspector. The left Effects studio, center lighting canvas, five LED bars, and per-light context menu remain available.
+
+The stage has rectangular, curved, and thrust footprints, slate/wood/black floor finishes, three room moods, and a configurable edge color. Canvas grid, labels, measurement annotations, and 5% object snapping can be toggled. Existing objects gain names, colors, placement locks, numeric size/position/rotation editing, duplication, and arrow-key movement. Lecterns, keyboards, steps, crosses, tables, and rugs join the original object types. The first platform is the main stage; other platforms use rectangular footprints. Photo and OBJ controls are retained in Reference.
+
+Space stores `unit` (`m` or `ft`), optional `widthM`, `depthM`, and `elevationM`, plus validated style and guide settings. Fixtures store optional `mountHeightM`, editable from Space or the shared Add/Change light dialog. All physical values are canonical meters, converted for display/input; unchanged displayed conversions retain the exact original value. `null` means unspecified, and height zero means room-floor level. Stage size is limited to 0.01–500 m, and elevations/heights to 0–100 m. These are optional planning references, not calibrated beam geometry or output controls. Fit proportions fits and centers the main platform on the current canvas without moving fixtures. Object size and position remain canvas percentages.
+
+All new metadata is additive within project format v2, survives Export/Open, and receives defaults when importing older projects. Metadata edits preserve lighting effects and transitions. Automated regression checks cover optional values, bounds, invalid-edit atomicity, legacy import, unit round trips, mounting-height persistence, object locking/snapping, and stage proportions. Actual Chromium checks cover desktop/laptop/mobile layouts, the real Export/Open flow, relocated OBJ controls, and the existing lighting/menu interactions. No physical-lighting accuracy or hardware support is implied.
+
 ## Requested ambitions that remain incomplete
 
 - Actual hardware discovery and auto-identification. The current Discovery panel explains RDM requirements; it does not scan devices. Auto-patch only allocates addresses in the project.
@@ -48,7 +58,7 @@ Engine and DOM-shim regression checks cover these operations. Chromium checks at
 
 1. `LumaPreviewEngine`, fixture artwork helpers, deterministic effect sampling, OBJ parser, and demo project.
 2. Base UI rendering, selection and arrangement, scenes, controls, patch view, project import/export.
-3. Stage guides and objects, contextual fixture controls, blackout timing, and preview discovery/auto-patch UI.
+3. Space designer, optional physical measurements, stage guides and objects, contextual fixture controls, blackout timing, and preview discovery/auto-patch UI.
 4. Effects studio controls, presets, waveform, playback, and scene effect indicators.
 5. Evaluated-frame SVG light rendering and right-side Color/Movement/Both inspector.
 6. Per-light context menu, shared fixture editor, and removal confirmation.

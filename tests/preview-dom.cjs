@@ -116,5 +116,39 @@ vm.runInContext(`
 }
 `,ctx,{timeout:6000});
 
+vm.runInContext(`
+{
+ const original=localPreview.copy(localPreview.project);setTool('space');
+ assert.equal($('space-tools').hidden,false);assert.equal($('light-inspector').hidden,true);assert.equal($('stage-width-m').value,'');assert.equal($('fit-stage-size').disabled,true);
+ $('stage-width-m').value='12';$('stage-width-m').dispatch('change');$('stage-depth-m').value='7';$('stage-depth-m').dispatch('change');$('stage-elevation-m').value='.8';$('stage-elevation-m').dispatch('change');
+ assert.equal(state.project.space.widthM,12);assert.equal(state.project.space.depthM,7);assert.equal(state.project.space.elevationM,.8);assert.equal($('fit-stage-size').disabled,false);
+ const fx=JSON.stringify(localPreview.project.effects);$('space-height-fixture').value='f9';$('space-height-fixture').dispatch('change');$('space-light-height').value='4.572';$('space-light-height').dispatch('change');
+ assert.equal(state.project.fixtures.find(f=>f.id==='f9').mountHeightM,4.572);assert.equal(JSON.stringify(localPreview.project.effects),fx);
+ document.querySelector('[data-space-unit="ft"]').click();assert.equal($('space-light-height').value,'15');assert.equal(state.project.space.widthM,12);assert.equal(state.project.space.elevationM,.8);
+ for(let n=0;n<5;n++){setSpaceUnits('m');setSpaceUnits('ft')}assert.equal(state.project.space.widthM,12);assert.equal(state.project.fixtures.find(f=>f.id==='f9').mountHeightM,4.572);
+ $('space-light-height').value='20';$('space-light-height').dispatch('change');assert.equal(state.project.fixtures.find(f=>f.id==='f9').mountHeightM,6.096);setSpaceUnits('m');
+ $('stage-width-m').value='-2';$('stage-width-m').dispatch('change');assert.equal($('space-measure-error').hidden,false);assert.equal(state.project.space.widthM,12);$('stage-width-m').value='12';$('stage-width-m').dispatch('change');assert.equal($('space-measure-error').hidden,true);
+ $('fit-stage-size').click();const main=mainStage(),rect=$('stage').getBoundingClientRect();assert(Math.abs(main.width*rect.width/(main.height*rect.height)-12/7)<1e-8);
+ document.querySelector('[data-stage-shape="thrust"]').click();$('stage-floor').value='wood';$('stage-floor').dispatch('change');assert.equal(state.project.space.stageShape,'thrust');assert.equal(state.project.space.floor,'wood');assert(objectElements.get(main.id).classList.contains('stage-deck'));
+ $('space-measurements').checked=false;$('space-measurements').dispatch('change');assert.equal($('space-measure-layer').hidden,true);assert.equal(fixtureElements.get('f9').querySelector('.fixture-height-label').hidden,true);
+ $('space-measurements').checked=true;$('space-measurements').dispatch('change');assert.equal(fixtureElements.get('f9').querySelector('.fixture-height-label').textContent,'↑ 6.1 m');
+ setSpaceTab('objects');document.querySelector('[data-add-object="lectern"]').click();const oid=objectId;assert.equal(state.project.space.objects.at(-1).kind,'lectern');
+ $('object-label').value='Pulpit <front>';$('object-label').dispatch('change');assert.equal(state.project.space.objects.at(-1).name,'Pulpit <front>');assert.equal(objectElements.get(oid).querySelector('.object-caption').textContent,'Pulpit <front>');
+ $('object-color').value='#ff9900';$('object-color').dispatch('change');$('object-x').value='41';$('object-x').dispatch('change');assert.equal(state.project.space.objects.at(-1).color,'#ff9900');assert.equal(state.project.space.objects.at(-1).x,41);
+ $('object-locked').checked=true;$('object-locked').dispatch('change');assert.equal($('object-width').disabled,true);assert.equal($('remove-object').disabled,true);
+ const locked=JSON.stringify(state.project.space.objects.at(-1));objectElements.get(oid).dispatch('pointerdown');assert.equal(objectGesture,null);objectElements.get(oid).dispatch('keydown',{key:'Delete'});assert.equal(JSON.stringify(state.project.space.objects.at(-1)),locked);
+ $('duplicate-object').click();assert.notEqual(objectId,oid);assert.equal(state.project.space.objects.at(-1).locked,false);assert.equal(state.project.space.objects.at(-1).name,'Pulpit <front> copy');$('remove-object').click();assert.equal(state.project.space.objects.length,2);
+ objectId=oid;syncObjectProperties();$('object-locked').checked=false;$('object-locked').dispatch('change');$('space-snap').checked=true;$('space-snap').dispatch('change');
+ const object=objectElements.get(oid);object.dispatch('pointerdown');object.dispatch('pointermove',{clientX:227,clientY:197});object.dispatch('pointerup');const moved=state.project.space.objects.find(o=>o.id===oid);assert.equal(moved.x%5,0);assert.equal(moved.y%5,0);
+ objectElements.get(oid).dispatch('keydown',{key:'ArrowRight'});assert.equal(state.project.space.objects.find(o=>o.id===oid).x,moved.x+5);
+ $('clear-stage-size').click();assert.equal(state.project.space.widthM,null);assert.equal(state.project.fixtures.find(f=>f.id==='f9').mountHeightM,6.096);
+ $('space-done').click();assert.equal(tool,'select');assert.equal($('space-tools').hidden,true);assert.equal($('light-inspector').hidden,false);
+ openFixtureEditor('f9');assert.equal($('fixture-mount-height').value,'6.096');$('fixture-mount-height').value='';$('fixture-form').dispatch('submit');assert.equal(state.project.fixtures.find(f=>f.id==='f9').mountHeightM,null);
+ const reopened=new LumaPreviewEngine(JSON.parse(JSON.stringify(localPreview.project)));assert.equal(reopened.project.space.objects.find(o=>o.id===oid).color,'#ff9900');assert.equal(reopened.project.space.stageShape,'thrust');
+ act({op:'import',project:original},true);objectId=null;setTool('select');
+ console.log('PASS: Space panel visibility, optional size controls, exact meters/feet round trips, mounting heights, validation, fit proportions, styles and guides, object naming/color/locking/copy/removal/snapping/keyboard movement, per-light height editor and cleared values.');
+}
+`,ctx,{timeout:7000});
+
 ctx.URL={createObjectURL(){return'blob:test'},revokeObjectURL(){}};
 vm.runInContext(`importPhoto({name:'stage.jpg',type:'image/jpeg',size:3}).then(()=>{assert.equal(state.project.space.mode,'photo');assert.equal(tool,'arrange');assert.equal($('space-photo').hidden,false);console.log('PASS: photo decoding/canvas import workflow with a stub image decoder.');})`,ctx);
