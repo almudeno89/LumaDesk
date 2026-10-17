@@ -21,6 +21,12 @@ npm start
 
 Then open `http://127.0.0.1:8770`. The server serves only the preview, binds to loopback, and sends no DMX commands. `PORT=8771 npm start` selects a different port. No `npm install` is necessary.
 
+## Save your project
+
+Click the blue **Save** button at the top, or press **⌘S** on Mac / **Ctrl+S** on Windows. It saves the entire project in this browser and automatically reopens that save next time you visit the same site. The status shows **Saved in this browser** or **Unsaved changes**. Changes after saving need another Save.
+
+Save does not download a file or upload your lighting project to GitHub. It uses a small amount of storage on this device. It does not sync across browsers/devices, and clearing site data or leaving a private browsing session can remove the save. Use **Export** for a separate backup and **Open** to import one, then Save to retain it here. If browser storage is full or blocked, the app reports failure and keeps the previous save.
+
 ## Design your space
 
 Choose **Space** above the stage to open the stage designer in the right column. **Done** returns to the light controls.
@@ -42,7 +48,7 @@ Right-click any light on the stage or in the left light list to open its frosted
 - **Move on stage**, **Select its group**, and **Stop effects** provide shortcuts to existing controls.
 - **Remove light** asks for confirmation, then removes it from the stage and saved scenes. Keep at least one light in the project.
 
-Actions target the light you clicked. Shape changes preserve its channel layout and running effects. Changing a channel layout removes unsupported effect layers from that light and its scenes. Use **Export** to keep project edits between visits.
+Actions target the light you clicked. Shape changes preserve its channel layout and running effects. Changing a channel layout removes unsupported effect layers from that light and its scenes. Use **Save** to keep edits in this browser, or **Export** for a separate backup.
 
 ## Mount and aim lights
 
@@ -52,7 +58,7 @@ For a moving head, drag the **⊕ target** at the beam’s landing point anywher
 
 Drag the heading of **More fixture controls** to move its popup. It stays where you place it during the session, stays inside the viewport, and supports arrow keys when its heading is focused. Double-click the heading to return it beside the light.
 
-These are stage-preview controls. The full-stage aiming map, forward direction, and mounting display are illustrative; they do not calibrate real fixture pan/tilt ranges or enable physical hardware output. Existing scene channel values stay intact, but their beam positions in the preview now use the full stage. Export your project to retain the light settings and static aims.
+These are stage-preview controls. The full-stage aiming map, forward direction, and mounting display are illustrative; they do not calibrate real fixture pan/tilt ranges or enable physical hardware output. Existing scene channel values stay intact, but their beam positions in the preview now use the full stage. Save your project to retain the light settings and static aims in this browser.
 
 ## Verify
 
@@ -75,4 +81,4 @@ The engine tests exercise effects, fades, scenes, patch data, and persistence. T
 
 The Python reference has an older UI and feature set. It is included to preserve earlier backend work. It is not the current app and is not connected to `index.html`.
 
-Project changes inside the preview are currently kept in memory. Use its **Export** button to keep your scenes and layout. Autosave, undo, real fixture profiles, MIDI, physical DMX integration, and RDM discovery remain development work.
+Project changes stay in memory until you click **Save** (this browser) or **Export** (downloaded backup). Autosave, undo, real fixture profiles, MIDI, physical DMX integration, and RDM discovery remain development work.

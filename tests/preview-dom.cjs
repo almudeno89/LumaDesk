@@ -199,5 +199,19 @@ vm.runInContext(`
  console.log('PASS: full-stage aim inverse at all edges, rotation and flipped mounting; orientation controls, keyboard/drag/cancel targeting, tool changes, static motion selection, preserved color and persistent popup positioning.');
 }
 `,ctx,{timeout:5000});
+vm.runInContext(`
+{
+ const original=localPreview.copy(localPreview.project),memory=new Map();window.localStorage={getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,String(v))};
+ assert.equal(restoreBrowserProject(),false);act({op:'edit_fixture',id:'f1',patch:{name:'Saved wash',forward:48,mounting:'upside-down'}});act({op:'aim',ids:['f9'],patch:{pan:.21,tilt:.87}});act({op:'save_scene',name:'Keep this scene',fade:1},true);
+ const expected=JSON.stringify(localPreview.validate(localPreview.project));$('save-project').click();assert.equal(dirty,false);assert.equal($('project-subtitle').textContent,'Saved in this browser');const record=memory.get(PROJECT_SAVE_KEY);assert.equal(JSON.stringify(JSON.parse(record).project),expected);
+ act({op:'edit_fixture',id:'f1',patch:{name:'Unsaved wash'}});assert(dirty);assert.equal(memory.get(PROJECT_SAVE_KEY),record);assert(restoreBrowserProject());assert.equal(JSON.stringify(localPreview.project),expected);
+ const stable=JSON.stringify(localPreview.project);memory.set(PROJECT_SAVE_KEY,'broken JSON');assert.equal(restoreBrowserProject(),false);assert.equal(JSON.stringify(localPreview.project),stable);assert.equal(memory.get(PROJECT_SAVE_KEY),'broken JSON');memory.set(PROJECT_SAVE_KEY,record);
+ window.localStorage.setItem=()=>{throw Error('QuotaExceededError')};markDirty();assert.equal(saveBrowserProject(),false);assert(dirty);assert.equal(memory.get(PROJECT_SAVE_KEY),record);assert.equal($('project-subtitle').textContent,'Not saved · Try Export');
+ window.localStorage.setItem=(k,v)=>memory.set(k,v);document.dispatch('keydown',{key:'s',metaKey:true});assert.equal(dirty,false);
+ $('fixture-dialog').showModal();markDirty();assert.equal(saveBrowserProject(),false);assert(dirty);$('fixture-dialog').close();
+ act({op:'import',project:original},true);setSelection(['f1']);renderLiveStage();assert(aimHandles.get('f1').forward.querySelector('svg'));
+ console.log('PASS: explicit Save, project/scene/aim round trips, unsaved edits remain separate, corrupt-data preservation, storage failure without false success, keyboard shortcut, dialog guard and SVG forward arrow.');
+}
+`,ctx,{timeout:5000});
 ctx.URL={createObjectURL(){return'blob:test'},revokeObjectURL(){}};
 vm.runInContext(`importPhoto({name:'stage.jpg',type:'image/jpeg',size:3}).then(()=>{assert.equal(state.project.space.mode,'photo');assert.equal(tool,'arrange');assert.equal($('space-photo').hidden,false);console.log('PASS: photo decoding/canvas import workflow with a stub image decoder.');})`,ctx);

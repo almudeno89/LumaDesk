@@ -151,7 +151,9 @@ dialog{background:linear-gradient(145deg,#33353e,#25272f);color:#f5f5f7;border:1
 .object-resize-handle{position:absolute;width:22px;height:22px;border:0;background:transparent;padding:0;pointer-events:auto;touch-action:none;transform:translate(-50%,-50%);border-radius:4px}.object-resize-handle:before{content:'';position:absolute;inset:6px;background:#ecf3ff;border:1px solid #658dcc;border-radius:2px;box-shadow:0 1px 5px #0007}.object-resize-handle:hover:before,.object-resize-handle:focus-visible:before{background:#91baff;inset:4px}.object-resize-handle:focus-visible{outline:2px solid #b7d0ff;outline-offset:0}.object-resize-handle.nw{left:0;top:0;cursor:nwse-resize}.object-resize-handle.ne{left:100%;top:0;cursor:nesw-resize}.object-resize-handle.sw{left:0;top:100%;cursor:nesw-resize}.object-resize-handle.se{left:100%;top:100%;cursor:nwse-resize}
 .object-quickbar{position:absolute;z-index:6;top:10px;left:50%;transform:translateX(-50%);max-width:calc(100% - 16px);width:max-content;border:1px solid #ffffff26;border-radius:11px;background:#2b3143e8;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 25px #0005;padding:5px;cursor:default;touch-action:manipulation}.object-quick-actions{display:flex;align-items:center;gap:3px}.object-quick-actions>span{max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:#d0def4;padding:0 8px 0 5px;border-right:1px solid #ffffff18;margin-right:3px}.object-quick-actions button{border:0;border-radius:6px;padding:6px 8px;font-size:10px;color:#dce8ff;background:transparent;white-space:nowrap}.object-quick-actions button:hover:not(:disabled){background:#ffffff16}.object-quick-actions button.danger{color:#ff979c}.object-quick-actions button:disabled{opacity:.35;cursor:default}.object-transform-hint{display:block;text-align:center;font-size:8px;line-height:1.5;color:#95a9c8;padding:4px 5px 1px;border-top:1px solid #ffffff0c;margin-top:3px}
 @media(max-width:620px){.object-quick-actions>span{display:none}.object-quick-actions button{padding:7px 9px}.object-resize-handle{width:28px;height:28px}.object-resize-handle:before{inset:8px}}
-.fixture-orientation{padding:8px 14px 14px;display:grid;gap:7px}.fixture-orientation label{font-size:10px;color:#afbed3}.fixture-orientation .dock-hint{margin:0}.popover-heading{cursor:grab;touch-action:none;user-select:none}.popover-heading:active{cursor:grabbing}.popover-heading:focus-visible,.aim-handle:focus-visible{outline:2px solid #8dceff;outline-offset:3px}.aim-handle{position:absolute;z-index:7;width:28px;height:28px;transform:translate(-50%,-50%);touch-action:none;color:#cbe7ff;cursor:grab;border:1px solid #8acaff88;background:#102b46dd;border-radius:50%;display:grid;place-items:center;font-size:18px;box-shadow:0 0 12px #0006}.aim-handle:active{cursor:grabbing}.aim-handle.forward-handle{width:24px;height:24px;font-size:22px;background:#173959;border-color:#72baff}.aim-handle.beam-target{background:#172d4677;border-style:dashed;font-size:20px}.fixture.upside-down .housing{scale:1 -1}.fixture:not(.moving) .housing{rotate:var(--forward-angle,0deg)}
+.fixture-orientation{padding:8px 14px 14px;display:grid;gap:7px}.fixture-orientation label{font-size:10px;color:#afbed3}.fixture-orientation .dock-hint{margin:0}.popover-heading{cursor:grab;touch-action:none;user-select:none}.popover-heading:active{cursor:grabbing}.popover-heading:focus-visible,.aim-handle:focus-visible{outline:2px solid #8dceff;outline-offset:3px}.aim-handle{position:absolute;z-index:7;width:28px;height:28px;transform:translate(-50%,-50%);touch-action:none;color:#cbe7ff;cursor:grab;border:1px solid #8acaff88;background:#102b46dd;border-radius:50%;display:grid;place-items:center;font-size:18px;box-shadow:0 0 12px #0006}.aim-handle:active{cursor:grabbing}.aim-handle.forward-handle{width:24px;height:24px;font-size:22px;background:#173959;border-color:#72baff}.aim-handle.forward-handle{padding:0;line-height:1}.forward-handle svg{display:block;pointer-events:none}.aim-handle.beam-target{background:#172d4677;border-style:dashed;font-size:20px}.fixture.upside-down .housing{scale:1 -1}.fixture:not(.moving) .housing{rotate:var(--forward-angle,0deg)}
+@media(max-width:700px){.titlebar .app-identity{min-width:33px}.project-subtitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title-actions{flex-shrink:0}}
+@media(max-width:480px){.titlebar{height:auto;min-height:96px;flex-wrap:wrap;gap:6px 12px;padding:10px 14px}.titlebar .project-label{flex:1}.title-actions{width:100%;justify-content:flex-end}.title-actions .status-pill{display:none}.title-actions .button{padding:7px 13px}.project-title{max-width:70vw}}
 </style>
 </head>
 <body>
@@ -159,7 +161,7 @@ dialog{background:linear-gradient(145deg,#33353e,#25272f);color:#f5f5f7;border:1
  <header class="titlebar">
   <div class="app-identity"><div class="app-logo" aria-hidden="true"><svg viewBox="0 0 30 30"><path d="M11 5h8l7 21H4Z" opacity=".7"/><path d="M13 5h4l3 21H10Z" fill="white" fill-opacity=".25"/><path d="M10 5h10" stroke-width="2.5"/></svg></div><span class="app-name">Luma Desk</span></div>
   <span class="divider-v"></span><div class="project-label"><div id="project-title" class="project-title">Sunday service</div><span class="project-subtitle" id="project-subtitle">Lighting studio · Demo project</span></div>
-  <div class="title-actions"><span class="status-pill"><span class="status-dot"></span>Standalone preview</span><button class="button" id="import-project"><span class="icon" data-icon="import"></span>Open</button><button class="button" id="export-project"><span class="icon" data-icon="export"></span>Export</button></div>
+  <div class="title-actions"><span class="status-pill"><span class="status-dot"></span>Standalone preview</span><button class="button blue" id="save-project" title="Save project in this browser · ⌘S / Ctrl+S">Save</button><button class="button" id="import-project"><span class="icon" data-icon="import"></span>Open</button><button class="button" id="export-project"><span class="icon" data-icon="export"></span>Export</button></div>
  </header>
  <aside class="sidebar">
   <div><div class="sidebar-section-label">WORKSPACE</div><nav class="nav" aria-label="Workspace"><button class="nav-button active" data-tab="stage" title="Stage"><span class="icon" data-icon="stage"></span><span class="nav-text">Stage</span><span class="key">1</span></button><button class="nav-button" data-tab="patch" title="Fixture patch"><span class="icon" data-icon="grid"></span><span class="nav-text">Fixture patch</span><span class="key">2</span></button><button class="nav-button" data-tab="connections" title="Connections"><span class="icon" data-icon="connections"></span><span class="nav-text">Connections</span><span class="key">3</span></button></nav></div>
@@ -532,10 +534,17 @@ const ICONS={
 function icon(name){const n=document.createElement('span');n.className='icon';n.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+(ICONS[name]||'')+'</svg>';return n}
 document.querySelectorAll('[data-icon]').forEach(n=>n.innerHTML=icon(n.dataset.icon).innerHTML);
 function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
+const PROJECT_SAVE_KEY='luma-desk.saved-project.v1';
+let restoredProject=false,projectLoadError='';
+function restoreBrowserProject(){
+ try{const raw=window.localStorage.getItem(PROJECT_SAVE_KEY);if(!raw)return false;const saved=JSON.parse(raw);if(saved.version!==1||!saved.project)throw Error('Invalid saved project');localPreview.act({op:'import',project:saved.project});return true}
+ catch(error){projectLoadError='Could not reopen the browser save. It has been left untouched. You can Open an exported backup.';return false}
+}
+restoredProject=restoreBrowserProject();
 let state=localPreview.snapshot(),selected=new Set(state.project.fixtures.map(f=>f.id)),tool='select',view='stage',gesture=null,colorGesture=null,toastTimer,dirty=false;
 const fixtureElements=new Map(),rowElements=new Map(),sceneElements=new Map();
 function toast(message,error=false){$('toast').textContent=message;$('toast').className='toast'+(error?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),4500)}
-function markDirty(){dirty=true;$('project-subtitle').textContent='Lighting studio · Export to save changes'}
+function markDirty(){dirty=true;$('project-subtitle').textContent='Unsaved changes · Click Save'}
 function act(body,structural=false){try{state=localPreview.act(body);markDirty();if(structural)renderAll();else update();return true}catch(e){toast(e.message,true);return false}}
 function rgbHex(l){return '#'+['r','g','b'].map(k=>Math.round(l[k]*255).toString(16).padStart(2,'0')).join('')}
 function hexRgb(hex){if(!/^#[0-9a-f]{6}$/i.test(hex))throw Error('Enter a six-digit hex color, such as #A476FF');return Object.fromEntries(['r','g','b'].map((k,i)=>[k,parseInt(hex.slice(1+i*2,3+i*2),16)/255]))}
@@ -626,10 +635,10 @@ for(const [name,hex] of [['Warm','#FFD2A0'],['Amber','#FF9A52'],['Rose','#F587BB
 $('native-color').oninput=e=>changeColor(e.target.value);$('hex-color').onchange=e=>changeColor(e.target.value.startsWith('#')?e.target.value:'#'+e.target.value);
 $('intensity').oninput=e=>{e.target.style.setProperty('--fill',e.target.value+'%');patchSelection({level:+e.target.value/100})};$('white').oninput=e=>{e.target.style.setProperty('--fill',e.target.value+'%');patchSelection({w:+e.target.value/100})};$('master').oninput=e=>{e.target.style.setProperty('--fill',e.target.value+'%');act({op:'master',value:+e.target.value/100})};$('blackout').onclick=()=>act({op:'blackout',value:!state.blackout});
 $('save-look').onclick=()=>{$('scene-name').value='';$('scene-dialog').showModal();$('scene-name').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
-$('scene-form').onsubmit=e=>{e.preventDefault();if(act({op:'save_scene',name:$('scene-name').value,fade:+$('scene-fade').value},true)){$('scene-dialog').close();toast('Scene saved. Export your project to keep it.')}};
+$('scene-form').onsubmit=e=>{e.preventDefault();if(act({op:'save_scene',name:$('scene-name').value,fade:+$('scene-fade').value},true)){$('scene-dialog').close();toast('Scene added. Click Save to keep your project.')}};
 function nextAddress(){const slots=new Set(),count=LumaPreviewEngine.channels[$('fixture-profile').value]?.length||4;for(const f of state.project.fixtures){for(let i=0;i<LumaPreviewEngine.channels[f.profile].length;i++)slots.add(f.address+i)}for(let a=1;a<=513-count;a++)if(Array.from({length:count},(_,i)=>i).every(i=>!slots.has(a+i)))return a;return 1}
 $('selected-appearance').onchange=e=>{if(e.target.value)act({op:'fixture',ids:[...selected],patch:{appearance:e.target.value}},true)};
-$('import-project').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>16*1024*1024)throw Error('Project exceeds 16 MiB');const project=JSON.parse(await f.text());if(act({op:'import',project},true)){setSelection(state.project.fixtures.map(f=>f.id));switchTab('stage');dirty=false;$('project-subtitle').textContent='Lighting studio · Imported project';toast('Project opened.')}}catch(err){toast(err.message,true)}e.target.value=''};
+$('import-project').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>16*1024*1024)throw Error('Project exceeds 16 MiB');const project=JSON.parse(await f.text());if(act({op:'import',project},true)){setSelection(state.project.fixtures.map(f=>f.id));switchTab('stage');markDirty();toast('Project opened. Click Save to keep it in this browser.')}}catch(err){toast(err.message,true)}e.target.value=''};
 $('export-project').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(localPreview.project,null,2)],{type:'application/json'})),a=node('a');a.href=url;a.download='luma-desk-project.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);dirty=false;$('project-subtitle').textContent='Lighting studio · Project exported';toast('Project exported. Keep the downloaded JSON to reopen it.')};
 for(let start=0;start<512;start+=64){const o=node('option','',(start+1)+'–'+(start+64));o.value=start;$('channel-page').append(o)}$('channel-page').onchange=renderChannels;
 document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||!$('fixture-context-menu').hidden||e.target.closest('input,textarea,select,[contenteditable="true"]'))return;if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='a'){e.preventDefault();setSelection(state.project.fixtures.map(f=>f.id));return}if(e.key==='Escape'){if(stageAimGesture){e.preventDefault();finishStageAim(true);return}if(popoverDrag){e.preventDefault();finishPopoverDrag(true);return}if(objectGesture){e.preventDefault();finishObjectGesture(true);return}if(tool==='space'&&objectId){e.preventDefault();objectId=null;syncObjectProperties();return}if(gesture)finishGesture(true);else setSelection([]);return}if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.key.toLowerCase()==='v')setTool('select');if(e.key.toLowerCase()==='m')setTool('arrange');if(['1','2','3'].includes(e.key))switchTab(['stage','patch','connections'][+e.key-1])});
@@ -1086,7 +1095,7 @@ function renderAimHandles(){
  }
  syncOrientation();
 }
-function makeAimHandle(id,kind){const b=node('button','aim-handle '+(kind==='forward'?'forward-handle':'beam-target'),kind==='forward'?'↓':'⊕');b.type='button';b.dataset.aimFixture=id;b.title=kind==='forward'?'Drag to set forward direction':'Drag to aim this light';$('stage').append(b);
+function makeAimHandle(id,kind){const b=node('button','aim-handle '+(kind==='forward'?'forward-handle':'beam-target'),kind==='forward'?'':'⊕');if(kind==='forward')b.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6"/></svg>';b.type='button';b.dataset.aimFixture=id;b.title=kind==='forward'?'Drag to set forward direction':'Drag to aim this light';$('stage').append(b);
  b.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();const f=state.project.fixtures.find(f=>f.id===id);if(!f)return;stageAimGesture={id,kind,pointer:e.pointerId,handle:b,forward:f.forward,patch:{pan:state.looks[id].pan,tilt:state.looks[id].tilt},changed:false};b.focus({preventScroll:true});b.setPointerCapture(e.pointerId)};
  b.onpointermove=e=>{const drag=stageAimGesture;if(!drag||drag.handle!==b||drag.pointer!==e.pointerId)return;e.preventDefault();e.stopPropagation();const f=state.project.fixtures.find(f=>f.id===id),r=$('stage').getBoundingClientRect();if(!f){finishStageAim(true);return}if(kind==='forward'){const dx=(e.clientX-r.left)/r.width-f.x/100,dy=((e.clientY-r.top)/r.height-f.y/100)*LIVE_STAGE.height/LIVE_STAGE.width;drag.forward=Math.round((Math.atan2(dx,dy)*180/Math.PI+360)%360)%360}else drag.patch=stageAimLook(f,{x:fxClamp((e.clientX-r.left)/r.width)*LIVE_STAGE.width,y:fxClamp((e.clientY-r.top)/r.height)*LIVE_STAGE.height});drag.changed=true;renderLiveStage()};
  b.onpointerup=e=>{if(stageAimGesture?.pointer===e.pointerId)finishStageAim()};b.onpointercancel=()=>finishStageAim(true);b.onlostpointercapture=()=>{if(stageAimGesture?.handle===b)finishStageAim(true)};b.onclick=e=>{e.stopPropagation()};
@@ -1096,7 +1105,7 @@ function finishStageAim(cancel=false){const drag=stageAimGesture;if(!drag)return
 setDockView('both');syncDock();renderLiveStage();
 
 // Start the bundled example once; imported projects keep their own playback settings.
-if(state.project.scenes.some(s=>s.id==='luma-living-light-demo')){$('stage-live-demo').click();dirty=false;$('project-subtitle').textContent='Lighting studio · Live demo';}
+if(!restoredProject&&state.project.scenes.some(s=>s.id==='luma-living-light-demo')){$('stage-live-demo').click();dirty=false;$('project-subtitle').textContent='Lighting studio · Live demo';}
 
 </script>
 <script>
@@ -1184,7 +1193,7 @@ $('fixture-form').onsubmit=e=>{
   patch.mounting=$('fixture-mounting').value;patch.forward=Number($('fixture-forward').value);patch.mountHeightM=readMeasurementInput($('fixture-mount-height'));
   state=localPreview.act(id?{op:'edit_fixture',id,patch}:{op:'add_fixture',...patch});markDirty();renderAll();
   const selectedId=id||state.project.fixtures.at(-1).id;setSelection([selectedId]);$('fixture-dialog').close();editingFixtureId=null;
-  renderSpaceMeasurements();fixtureElements.get(selectedId).focus({preventScroll:true});toast(id?'Light updated. Export your project to keep the changes.':'Light added at zero intensity.');
+  renderSpaceMeasurements();fixtureElements.get(selectedId).focus({preventScroll:true});toast(id?'Light updated. Click Save to keep the changes.':'Light added at zero intensity.');
  }catch(error){$('fixture-form-error').textContent=error.message;$('fixture-form-error').hidden=false}
 };
 $('confirm-remove-light').onclick=()=>{
@@ -1219,6 +1228,20 @@ document.addEventListener('keydown',e=>{
  else if(e.key==='Tab')closeLightMenu(true);
  else if(e.key==='Enter'||e.key===' '){e.preventDefault();if(index>=0)items[index].click()}
 });
+function saveBrowserProject(){
+ if(document.querySelector('dialog[open]')){toast('Finish editing the open dialog, then save your project.');return false}
+ if(gesture||objectGesture||stageAimGesture){toast('Finish placing the light or object, then save.');return false}
+ try{
+  const project=localPreview.validate(localPreview.project);
+  // A single atomic write leaves the previous save intact if storage is full or blocked.
+  window.localStorage.setItem(PROJECT_SAVE_KEY,JSON.stringify({version:1,savedAt:new Date().toISOString(),project}));
+  dirty=false;$('project-subtitle').textContent='Saved in this browser';toast('Project saved in this browser. It will reopen here next time.');return true;
+ }catch(error){dirty=true;$('project-subtitle').textContent='Not saved · Try Export';toast('Could not save in this browser. Storage may be full or blocked. Use Export to keep a backup.',true);return false}
+}
+$('save-project').onclick=saveBrowserProject;
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&!e.altKey&&!e.shiftKey&&e.key.toLowerCase()==='s'){e.preventDefault();document.activeElement?.blur?.();saveBrowserProject()}});
+if(restoredProject){dirty=false;$('project-subtitle').textContent='Saved project reopened · This browser'}
+if(projectLoadError){$('project-subtitle').textContent='Browser save could not be opened';toast(projectLoadError,true)}
 </script>
 </body>
 </html>

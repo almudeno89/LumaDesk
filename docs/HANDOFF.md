@@ -10,6 +10,14 @@ On October 17, 2026, Pablo explicitly approved the version with the per-light iO
 
 An earlier completed request moved Effects studio from below the stage to its own left column because the right-hand inspector obscured the previous layout while scrolling. The left panel now has independent scrolling, a fixed header, and an always-visible action footer. The center holds the stage and scenes, with color and movement controls on the right. Responsive layouts use fewer columns at narrower widths.
 
+## Explicit project Save · October 17, 2026
+
+The top-bar Save button and ⌘S / Ctrl+S write a validated whole project to `localStorage` under `luma-desk.saved-project.v1`, in an envelope with `version:1`, `savedAt`, and `project`. A single atomic write preserves the previous save on quota/permission failure. Startup restores through engine validation before UI initialization, and skips automatic Living light demo playback for restored projects. Invalid stored data is retained untouched and a recovery message points to Open. Save is explicit, not automatic; one current project is stored per site/browser. Import marks the project unsaved until Save. Export still provides a separate downloadable backup.
+
+The status distinguishes unsaved edits, saved/reopened browser data, and failures. Keyboard saving commits a focused field's change event first; open dialogs and active placement drafts must be finished before saving. All project metadata, fixtures, scenes, effects and stage guides persist; transient selection, popup position, effect phase, master/blackout and running scene-transition time are not project data. No cloud or GitHub project upload is implemented. Clearing browser data/private browsing can remove the saved copy; exports remain the portable backup. Regression tests cover save/load, invalid data and storage failure; Chromium checks cover reload, a new tab, keyboard saving, mobile header layout, and no download on Save.
+
+The per-light forward arrow now uses a centered SVG with explicit dimensions instead of a font glyph, eliminating the off-center symbol reported by the user.
+
 ## Fixture mounting and direct aiming update · October 17, 2026
 
 - All fixtures retain validated `mounting` (`normal` / `upside-down`) and `forward` (0–360°) metadata. Missing legacy values default to normal mounting and 0° forward, or 180° for existing front-light groups to preserve their inward direction. Fixed-light beams follow the forward arrow. Inspector multi-edit and the shared Add/Change light form expose these fields. Duplication and JSON export/import preserve them; scene looks continue to store normalized channel values.
@@ -32,13 +40,13 @@ An earlier completed request moved Effects studio from below the stage to its ow
 - Smooth scene changes and blackout/restoration fades. Manual color edits stop the selected color effect so manual choices take effect.
 - Save scenes with their base looks and effect configurations. Import/export the app's JSON format, including fixture appearance, effects, scenes, and stage guides. Legacy projects without appearance metadata get inferred shapes.
 - Photo/camera image as a stage reference canvas, OBJ scan geometry as a layout guide, and platform/truss/speaker/screen/drums/person primitives.
-- A Living light demo scene starts on page load, animating washes, bars, and the moving head. It initially selects the moving head so movement controls are immediately available.
+- A Living light demo scene starts on page load when no browser save is restored, animating washes, bars, and the moving head. It initially selects the moving head so movement controls are immediately available.
 
 ### Per-light context menu (October 17, 2026)
 
 Right-click a fixture on the stage or in the sidebar to select only that fixture and open an iOS-inspired frosted menu. It supports Adjust light, Change light, Rename, Duplicate, Move on stage, Select its group, Stop effects, and confirmed removal. Keyboard access uses Shift+F10 or the Context Menu key, arrow navigation, and Escape with focus restored. Outside clicks, wheel scrolling, window blur, and resizing dismiss it.
 
-The shared Add/Change dialog shows validation errors inline. Metadata and appearance edits preserve effect timing. Profile changes clear unsupported current and saved effect layers; channel collisions fail without partial changes. Copies get a free channel block and begin off, without effects, in both the current look and saved scenes. Removal updates all scene looks/effects. Duplication and removal retain the other fixtures' running scene fade. The project must retain at least one fixture. Project format remains v2 and changes still require Export for persistence.
+The shared Add/Change dialog shows validation errors inline. Metadata and appearance edits preserve effect timing. Profile changes clear unsupported current and saved effect layers; channel collisions fail without partial changes. Copies get a free channel block and begin off, without effects, in both the current look and saved scenes. Removal updates all scene looks/effects. Duplication and removal retain the other fixtures' running scene fade. The project must retain at least one fixture. Project format remains v2; Save now retains changes in this browser, and Export creates portable backups.
 
 Engine and DOM-shim regression checks cover these operations. Chromium checks at desktop, laptop, and narrow viewport sizes exercise real context-menu events, keyboard focus, editing errors, copy/remove actions, group selection, arrangement, controls, and menu placement. These are browser simulation checks, not physical-lighting tests. Safari on an actual Mac remains untested.
 

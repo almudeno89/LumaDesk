@@ -24,6 +24,8 @@ With branch-based Pages enabled, later pushes to `main` trigger site updates. A 
 
 ## What remains local to the browser
 
-The current app holds a lighting project in browser memory and uses **Export** to download saved projects. Reloading without exporting can lose changes. GitHub stores the application source; it does not automatically save scenes or layouts edited inside the app. Online saving of lighting projects needs a separate feature.
+The **Save** button (also ⌘S / Ctrl+S) stores the current lighting project in this browser on this device. The latest save reopens on the next visit to the same site. Unsaved changes after that save are lost on reload. **Export** downloads a separate backup; **Open** imports one and needs Save to replace the browser copy. Browser storage uses device space, can be cleared, is separate for each browser/site, and does not sync to another computer. Private browsing may discard it when the session closes.
+
+GitHub stores the application source, not lighting projects saved inside the app. Cross-device/cloud saving remains unimplemented. Storage failures are reported without replacing the previous browser save.
 
 Real DMX/RDM and MIDI integrations remain future work. The current application is a simulation and does not send hardware output.
