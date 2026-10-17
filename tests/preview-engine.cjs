@@ -80,5 +80,25 @@ const st=fresh();st.act({op:'fixture',ids:['f9'],patch:{strobe:.1}},0);assert(st
  e.act({op:'space',space:{...e.project.space,widthM:null,depthM:null,elevationM:null}},10.5);assert.equal(e.project.space.widthM,null);assert.equal(e.project.space.objects.length,7);
  console.log('PASS: optional physical measurements and legacy defaults, zero versus unset height, metadata preserves output/effects/fades, bounds and style validation are atomic, extended objects and measured duplicate survive export/import.');
 }
+// Every corner anchors its opposite corner, including rotated objects and canvas bounds.
+{
+ const rect={width:800,height:430},base={id:'resize',kind:'screen',name:'Screen',x:50,y:50,width:20,height:20,rotation:0,color:'#91a5c3',locked:false};
+ const anchor=(o,corner)=>{const sx=corner.endsWith('e')?1:-1,sy=corner.startsWith('s')?1:-1,c=Math.cos(o.rotation*Math.PI/180),s=Math.sin(o.rotation*Math.PI/180),x=-sx*o.width*rect.width/200,y=-sy*o.height*rect.height/200;return[o.x*rect.width/100+x*c-y*s,o.y*rect.height/100+x*s+y*c]};
+ for(const rotation of [0,30,90,-135,180])for(const corner of ['nw','ne','sw','se']){
+  const o={...base,rotation},sx=corner.endsWith('e')?1:-1,sy=corner.startsWith('s')?1:-1,c=Math.cos(rotation*Math.PI/180),s=Math.sin(rotation*Math.PI/180),dx=sx*70*c-sy*40*s,dy=sx*70*s+sy*40*c;
+  for(const options of [{},{keepRatio:true},{snap:true},{keepRatio:true,snap:true}]){
+   const next=resizeSpaceObject(o,corner,dx,dy,rect,options),a=anchor(o,corner),b=anchor(next,corner);close(a[0],b[0]);close(a[1],b[1]);assert(next.width>o.width&&next.height>o.height);
+   if(options.keepRatio)close(next.width/next.height,o.width/o.height);
+   assert.equal(next.rotation,rotation);assert.equal(next.name,o.name);
+  }
+ }
+ for(const corner of ['nw','ne','sw','se'])for(const x of [0,50,100])for(const y of [0,50,100])for(const d of [-10000,10000]){
+  const o={...base,x,y,rotation:35},next=resizeSpaceObject(o,corner,d,-d,rect);assert(next.width>=2&&next.width<=95&&next.height>=2&&next.height<=95&&next.x>=0&&next.x<=100&&next.y>=0&&next.y<=100);const a=anchor(o,corner),b=anchor(next,corner);close(a[0],b[0]);close(a[1],b[1]);
+ }
+ const snapped=resizeSpaceObject(base,'se',70,40,rect,{snap:true});close(snapped.width,30);close(snapped.height,30);
+ const e=fresh(),before=e.snapshot(10).frame;e.act({op:'space',space:{...e.project.space,objects:[resizeSpaceObject(base,'se',80,43,rect)]}},10);assert.deepEqual(e.snapshot(10).frame,before);assert.equal(new LumaPreviewEngine(e.copy(e.project)).project.space.objects[0].width,30);
+ assert.throws(()=>resizeSpaceObject(base,'bad',1,1,rect));assert.throws(()=>resizeSpaceObject(base,'se',NaN,1,rect));assert.throws(()=>resizeSpaceObject(base,'se',1,1,{width:0,height:430}));
+ console.log('PASS: all four resize corners at multiple rotations, fixed opposite anchors, proportional resizing, snapping, crossing and size/center limits, invalid geometry, saved sizes and unchanged light output.');
+}
 console.log('PASS: continuous brightness/color/motion, cycle bounds and timing, fade-in/out, deterministic flicker, group offsets, movement filtering and DMX values, pause/resume with blackout, tempo continuity, animated scene recall and export, invalid-data atomicity, live strobe and stop-all.');
 `,{console,assert,performance,Set,Map,Math},{timeout:6000});

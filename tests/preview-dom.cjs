@@ -150,5 +150,31 @@ vm.runInContext(`
 }
 `,ctx,{timeout:7000});
 
+vm.runInContext(`
+{
+ const saved=localPreview.copy(localPreview.project);setTool('space');setSpaceTab('objects');$('object-kind').value='screen';$('add-stage-object').click();
+ const id=objectId;updateSpaceObject({x:50,y:50,width:20,height:20,rotation:0});
+ assert.equal(objectTransform.hidden,false);assert.equal(objectQuickbar.hidden,false);assert.equal($('object-quick-name').textContent,'Screen');
+ const se=objectTransform.querySelector('[data-resize-corner="se"]'),before=JSON.stringify(localPreview.project),effects=JSON.stringify(localPreview.project.effects);
+ se.dispatch('pointerdown',{clientX:300,clientY:300});se.dispatch('pointermove',{clientX:380,clientY:343,pointerId:2});assert.equal(objectGesture.after,undefined);
+ se.dispatch('pointermove',{clientX:380,clientY:343});assert.equal(JSON.stringify(localPreview.project),before);assert.equal(objectElements.get(id).style.width,'30%');
+ se.dispatch('pointerup');assert.equal(objectGesture,null);assert.equal(state.project.space.objects.find(o=>o.id===id).width,30);assert.equal(state.project.space.objects.find(o=>o.id===id).height,30);assert.equal(JSON.stringify(localPreview.project.effects),effects);
+ $('stage').dispatch('pointerdown');assert.equal(objectTransform.hidden,true);selectSpaceObject(id);document.dispatch('keydown',{key:'Escape',target:$('stage')});assert.equal(objectQuickbar.hidden,true);selectSpaceObject(id);
+ const committed=JSON.stringify(localPreview.project);se.dispatch('pointerdown');se.dispatch('pointermove',{clientX:250,clientY:220});document.dispatch('keydown',{key:'Escape',target:se});assert.equal(objectGesture,null);assert.equal(JSON.stringify(localPreview.project),committed);
+ se.dispatch('pointerdown');se.dispatch('pointermove',{clientX:250,clientY:220});se.dispatch('pointercancel');assert.equal(JSON.stringify(localPreview.project),committed);
+ se.dispatch('pointerdown');se.dispatch('pointermove',{clientX:250,clientY:220});setTool('select');assert.equal(objectGesture,null);assert.equal(objectTransform.hidden,true);assert.equal(objectQuickbar.hidden,true);assert.equal(JSON.stringify(localPreview.project),committed);setTool('space');
+ se.dispatch('pointerdown');se.dispatch('pointermove',{clientX:280,clientY:190,shiftKey:true});se.dispatch('pointerup');const resized=state.project.space.objects.find(o=>o.id===id);assert(Math.abs(resized.width/resized.height-1)<1e-8);
+ $('object-quick-rotate').click();assert.equal(state.project.space.objects.find(o=>o.id===id).rotation,90);
+ se.dispatch('keydown',{key:'ArrowDown'});assert(state.project.space.objects.find(o=>o.id===id).width>resized.width);
+ $('object-quick-lock').click();assert.equal($('object-quick-lock').textContent,'Unlock');assert.equal($('object-quick-delete').disabled,true);assert.equal(se.hidden,true);se.dispatch('pointerdown');assert.equal(objectGesture,null);
+ const count=state.project.space.objects.length;$('object-quick-delete').click();assert.equal(state.project.space.objects.length,count);
+ $('object-quick-duplicate').click();const copy=objectId;assert.notEqual(copy,id);assert.equal(state.project.space.objects.at(-1).locked,false);assert.equal(se.hidden,false);
+ $('object-quick-delete').click();assert.equal(state.project.space.objects.length,count);assert.equal(objectTransform.hidden,true);assert.equal(document.activeElement,$('stage'));assert(state.project.space.objects.find(o=>o.id===id).locked);
+ selectSpaceObject(id);$('object-quick-lock').click();objectElements.get(id).dispatch('keydown',{key:'Delete'});assert(!state.project.space.objects.some(o=>o.id===id));
+ act({op:'import',project:saved},true);objectId=null;setTool('select');
+ console.log('PASS: visible corner handles and quick actions, draft-only resize previews, pointer isolation, commit/cancel/Escape/tool switching, Shift proportions, rotation and keyboard sizing, locked object protection, duplicate and delete targeting.');
+}
+`,ctx,{timeout:7000});
+
 ctx.URL={createObjectURL(){return'blob:test'},revokeObjectURL(){}};
 vm.runInContext(`importPhoto({name:'stage.jpg',type:'image/jpeg',size:3}).then(()=>{assert.equal(state.project.space.mode,'photo');assert.equal(tool,'arrange');assert.equal($('space-photo').hidden,false);console.log('PASS: photo decoding/canvas import workflow with a stub image decoder.');})`,ctx);

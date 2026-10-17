@@ -43,6 +43,12 @@ Space stores `unit` (`m` or `ft`), optional `widthM`, `depthM`, and `elevationM`
 
 All new metadata is additive within project format v2, survives Export/Open, and receives defaults when importing older projects. Metadata edits preserve lighting effects and transitions. Automated regression checks cover optional values, bounds, invalid-edit atomicity, legacy import, unit round trips, mounting-height persistence, object locking/snapping, and stage proportions. Actual Chromium checks cover desktop/laptop/mobile layouts, the real Export/Open flow, relocated OBJ controls, and the existing lighting/menu interactions. No physical-lighting accuracy or hardware support is implied.
 
+### Direct object manipulation (October 17, 2026)
+
+In Space, selecting or adding an object now shows four corner resize handles and an on-canvas Duplicate / Rotate / Lock / Delete action bar. Handles support mouse, touch, and keyboard. Resizing operates in the object's rotated coordinate system and fixes the opposite corner; Shift-drag preserves proportions. Snapping rounds resized dimensions to 5% canvas increments. The existing 2–95% size and 0–100% center limits remain enforced. Rotate advances by 90 degrees; locked objects keep duplication and unlocking available while preventing destructive or placement edits.
+
+Movement and resizing preview locally, committing only on pointer release. Escape, pointer cancellation, lost pointer capture, window blur/resize, or leaving Space cancels the gesture. Clicking blank canvas or pressing Escape with no active gesture clears object selection. Focused objects and corners accept Delete/Backspace. The selection frame and handles are separate from object buttons, and toolbar controls remain reachable at narrow widths. Changes use the existing object fields and preserve Export/Open compatibility. Automated geometry/event checks and actual Chromium mouse, keyboard, touch, and persistence checks cover these behaviors.
+
 ## Requested ambitions that remain incomplete
 
 - Actual hardware discovery and auto-identification. The current Discovery panel explains RDM requirements; it does not scan devices. Auto-patch only allocates addresses in the project.

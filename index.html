@@ -146,6 +146,11 @@ dialog{background:linear-gradient(145deg,#33353e,#25272f);color:#f5f5f7;border:1
 #fixture-dialog{max-height:calc(100dvh - 32px);overflow:auto}
 @media(max-width:900px){.workspace>.space-inspector{position:static;height:620px;max-height:70dvh}.space-section{padding:14px}}
 @media(max-width:620px){.workspace>.space-inspector{height:640px;max-height:80dvh}.space-editor-heading{padding:16px}.space-editor-footer>span{font-size:10px}}
+/* Direct manipulation controls are siblings of stage objects, never nested buttons. */
+.object-transform{position:absolute;z-index:5;pointer-events:none;border:1px solid #94b9ff;box-shadow:0 0 0 1px #15213b66;transform-origin:center;border-radius:2px}.object-transform.locked{border-style:dashed;border-color:#9da8ba66;box-shadow:none}.stage.space-edit .stage-object.selected{outline:none}
+.object-resize-handle{position:absolute;width:22px;height:22px;border:0;background:transparent;padding:0;pointer-events:auto;touch-action:none;transform:translate(-50%,-50%);border-radius:4px}.object-resize-handle:before{content:'';position:absolute;inset:6px;background:#ecf3ff;border:1px solid #658dcc;border-radius:2px;box-shadow:0 1px 5px #0007}.object-resize-handle:hover:before,.object-resize-handle:focus-visible:before{background:#91baff;inset:4px}.object-resize-handle:focus-visible{outline:2px solid #b7d0ff;outline-offset:0}.object-resize-handle.nw{left:0;top:0;cursor:nwse-resize}.object-resize-handle.ne{left:100%;top:0;cursor:nesw-resize}.object-resize-handle.sw{left:0;top:100%;cursor:nesw-resize}.object-resize-handle.se{left:100%;top:100%;cursor:nwse-resize}
+.object-quickbar{position:absolute;z-index:6;top:10px;left:50%;transform:translateX(-50%);max-width:calc(100% - 16px);width:max-content;border:1px solid #ffffff26;border-radius:11px;background:#2b3143e8;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 25px #0005;padding:5px;cursor:default;touch-action:manipulation}.object-quick-actions{display:flex;align-items:center;gap:3px}.object-quick-actions>span{max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:#d0def4;padding:0 8px 0 5px;border-right:1px solid #ffffff18;margin-right:3px}.object-quick-actions button{border:0;border-radius:6px;padding:6px 8px;font-size:10px;color:#dce8ff;background:transparent;white-space:nowrap}.object-quick-actions button:hover:not(:disabled){background:#ffffff16}.object-quick-actions button.danger{color:#ff979c}.object-quick-actions button:disabled{opacity:.35;cursor:default}.object-transform-hint{display:block;text-align:center;font-size:8px;line-height:1.5;color:#95a9c8;padding:4px 5px 1px;border-top:1px solid #ffffff0c;margin-top:3px}
+@media(max-width:620px){.object-quick-actions>span{display:none}.object-quick-actions button{padding:7px 9px}.object-resize-handle{width:28px;height:28px}.object-resize-handle:before{inset:8px}}
 </style>
 </head>
 <body>
@@ -273,6 +278,29 @@ function fixtureArtwork(appearance){
  };
  const box={'par':'0 0 48 50','wash':'0 0 52 44','fresnel':'0 0 54 54','moving-head':'0 0 48 58','led-bar':'0 0 40 138'}[appearance];
  return `<svg class="fixture-art" viewBox="${box}" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${artwork[appearance]}</svg>`;
+}
+
+// Resize in the object's rotated coordinate system while keeping the opposite corner fixed.
+function resizeSpaceObject(o,corner,dx,dy,rect,{keepRatio=false,snap=false}={}){
+ if(!['nw','ne','sw','se'].includes(corner)||![dx,dy,rect.width,rect.height].every(Number.isFinite)||rect.width<=0||rect.height<=0)throw Error('Invalid resize geometry');
+ const sx=corner.endsWith('e')?1:-1,sy=corner.startsWith('s')?1:-1,angle=o.rotation*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
+ const w0=o.width*rect.width/100,h0=o.height*rect.height/100,minW=.02*rect.width,minH=.02*rect.height,maxW=.95*rect.width,maxH=.95*rect.height;
+ let w=w0+sx*(dx*c+dy*s),h=h0+sy*(-dx*s+dy*c);
+ if(keepRatio){
+  const useWidth=Math.abs(w/w0-1)>=Math.abs(h/h0-1);let scale=useWidth?w/w0:h/h0;
+  if(snap)scale=useWidth?Math.round(w/(rect.width*.05))*(rect.width*.05)/w0:Math.round(h/(rect.height*.05))*(rect.height*.05)/h0;
+  scale=Math.max(minW/w0,minH/h0,Math.min(maxW/w0,maxH/h0,scale));w=w0*scale;h=h0*scale;
+ }else{
+  if(snap){w=Math.round(w/(rect.width*.05))*(rect.width*.05);h=Math.round(h/(rect.height*.05))*(rect.height*.05)}
+  w=Math.max(minW,Math.min(maxW,w));h=Math.max(minH,Math.min(maxH,h));
+ }
+ const shiftX=(sx*(w-w0)*c-sy*(h-h0)*s)/2,shiftY=(sx*(w-w0)*s+sy*(h-h0)*c)/2;
+ const x0=o.x*rect.width/100,y0=o.y*rect.height/100;
+ // Bound the center without sliding the anchored opposite corner.
+ let t=1;
+ if(shiftX>0)t=Math.min(t,(rect.width-x0)/shiftX);else if(shiftX<0)t=Math.min(t,-x0/shiftX);
+ if(shiftY>0)t=Math.min(t,(rect.height-y0)/shiftY);else if(shiftY<0)t=Math.min(t,-y0/shiftY);
+ return{...o,x:Math.max(0,Math.min(100,(x0+shiftX*t)/rect.width*100)),y:Math.max(0,Math.min(100,(y0+shiftY*t)/rect.height*100)),width:Math.max(2,Math.min(95,(w0+(w-w0)*t)/rect.width*100)),height:Math.max(2,Math.min(95,(h0+(h-h0)*t)/rect.height*100))};
 }
 
 class LumaPreviewEngine {
@@ -590,7 +618,7 @@ $('selected-appearance').onchange=e=>{if(e.target.value)act({op:'fixture',ids:[.
 $('import-project').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>16*1024*1024)throw Error('Project exceeds 16 MiB');const project=JSON.parse(await f.text());if(act({op:'import',project},true)){setSelection(state.project.fixtures.map(f=>f.id));switchTab('stage');dirty=false;$('project-subtitle').textContent='Lighting studio · Imported project';toast('Project opened.')}}catch(err){toast(err.message,true)}e.target.value=''};
 $('export-project').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(localPreview.project,null,2)],{type:'application/json'})),a=node('a');a.href=url;a.download='luma-desk-project.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);dirty=false;$('project-subtitle').textContent='Lighting studio · Project exported';toast('Project exported. Keep the downloaded JSON to reopen it.')};
 for(let start=0;start<512;start+=64){const o=node('option','',(start+1)+'–'+(start+64));o.value=start;$('channel-page').append(o)}$('channel-page').onchange=renderChannels;
-document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||!$('fixture-context-menu').hidden||e.target.closest('input,textarea,select,[contenteditable="true"]'))return;if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='a'){e.preventDefault();setSelection(state.project.fixtures.map(f=>f.id));return}if(e.key==='Escape'){if(gesture)finishGesture(true);else setSelection([]);return}if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.key.toLowerCase()==='v')setTool('select');if(e.key.toLowerCase()==='m')setTool('arrange');if(['1','2','3'].includes(e.key))switchTab(['stage','patch','connections'][+e.key-1])});
+document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||!$('fixture-context-menu').hidden||e.target.closest('input,textarea,select,[contenteditable="true"]'))return;if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='a'){e.preventDefault();setSelection(state.project.fixtures.map(f=>f.id));return}if(e.key==='Escape'){if(objectGesture){e.preventDefault();finishObjectGesture(true);return}if(tool==='space'&&objectId){e.preventDefault();objectId=null;syncObjectProperties();return}if(gesture)finishGesture(true);else setSelection([]);return}if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.key.toLowerCase()==='v')setTool('select');if(e.key.toLowerCase()==='m')setTool('arrange');if(['1','2','3'].includes(e.key))switchTab(['stage','patch','connections'][+e.key-1])});
 renderAll();renderChannels();
 let lastFrame=0,lastPreviewError='';function tick(now){requestAnimationFrame(tick);if(now-lastFrame<16)return;lastFrame=now;try{state=localPreview.snapshot(now/1000);update();lastPreviewError=''}catch(error){const message=error.message||String(error);if(message!==lastPreviewError){console.error('Stage preview:',error);toast('Preview error: '+message,true);lastPreviewError=message}if($('stage-live-status'))$('stage-live-status').textContent='Preview error'}}requestAnimationFrame(tick);
 </script>
@@ -622,7 +650,7 @@ const spaceTools=node('aside','space-inspector');spaceTools.id='space-tools';spa
  <div data-space-panel="objects" hidden>
   <section class="space-section"><div class="space-section-title"><h3>Add to your stage</h3><span>Arrange freely</span></div><div class="space-object-palette" id="space-object-palette"></div><label class="space-field">Object type<select id="object-kind" aria-label="Stage object type"><option value="platform">Stage platform</option><option value="truss">Truss</option><option value="speaker">Speaker</option><option value="screen">Screen</option><option value="drums">Drum kit</option><option value="person">Person</option><option value="lectern">Lectern</option><option value="keyboard">Keyboard</option><option value="stairs">Steps</option><option value="cross">Cross</option><option value="table">Table</option><option value="rug">Rug</option></select></label><button class="button blue space-full-button" id="add-stage-object">Add object</button></section>
   <section class="space-section"><div class="space-section-title"><h3>In your space</h3><span id="space-object-count"></span></div><div class="space-object-list" id="space-object-list"></div><p class="space-help" id="space-object-empty">Add an object to start shaping your stage.</p></section>
-  <section class="space-section object-properties" id="object-properties" hidden><div class="space-section-title"><h3 id="object-name">Object</h3><span id="object-role"></span></div><label class="space-field">Name<input id="object-label" maxlength="80"></label><div class="space-field-pair"><label>Width %<input id="object-width" type="number" min="2" max="95" step="1"></label><label>Depth %<input id="object-height" type="number" min="2" max="95" step="1"></label></div><div class="space-field-pair"><label>Left / right %<input id="object-x" type="number" min="0" max="100" step="1"></label><label>Front / back %<input id="object-y" type="number" min="0" max="100" step="1"></label></div><label class="space-field">Rotation °<input id="object-rotation" type="number" min="-180" max="180" step="1"></label><label class="space-inline-field">Object color<input type="color" id="object-color" value="#91a5c3"></label><label class="space-toggle"><span>Lock placement</span><input id="object-locked" type="checkbox"></label><p class="space-help">Size and position use percentages of the canvas. Drag objects to place them, or use arrow keys for small moves.</p><div class="space-action-pair"><button class="button small" id="duplicate-object">Duplicate</button><button class="button quiet small" id="remove-object">Remove</button></div><p class="form-error" id="space-object-error" role="alert" hidden></p></section>
+  <section class="space-section object-properties" id="object-properties" hidden><div class="space-section-title"><h3 id="object-name">Object</h3><span id="object-role"></span></div><label class="space-field">Name<input id="object-label" maxlength="80"></label><div class="space-field-pair"><label>Width %<input id="object-width" type="number" min="2" max="95" step="1"></label><label>Depth %<input id="object-height" type="number" min="2" max="95" step="1"></label></div><div class="space-field-pair"><label>Left / right %<input id="object-x" type="number" min="0" max="100" step="1"></label><label>Front / back %<input id="object-y" type="number" min="0" max="100" step="1"></label></div><label class="space-field">Rotation °<input id="object-rotation" type="number" min="-180" max="180" step="1"></label><label class="space-inline-field">Object color<input type="color" id="object-color" value="#91a5c3"></label><label class="space-toggle"><span>Lock placement</span><input id="object-locked" type="checkbox"></label><p class="space-help">Size and position use percentages of the canvas. Drag objects to move them and drag their corner handles to resize. Shift-drag keeps proportions; Escape cancels a drag. Arrow keys move the selected object, or resize a focused corner. Delete removes it.</p><div class="space-action-pair"><button class="button small" id="duplicate-object">Duplicate</button><button class="button quiet small" id="remove-object">Remove</button></div><p class="form-error" id="space-object-error" role="alert" hidden></p></section>
  </div>
  <div data-space-panel="reference" hidden>
   <section class="space-section"><h3>Bring your space in</h3><p class="space-help">Use your church’s stage as a backdrop while you arrange your lights.</p><div class="space-action-pair"><button class="button small" id="upload-stage-photo">Add photo</button><button class="button small" id="take-stage-photo">Take photo</button></div><button class="button space-full-button" id="upload-stage-scan">Import Polycam OBJ</button><label class="space-field">Backdrop<select id="space-mode" aria-label="Stage backdrop"><option value="empty">Designed stage</option><option value="photo">Photo</option><option value="scan">3D scan guide</option></select></label><p class="space-help" id="space-caption"></p><label class="space-field">Opacity<input id="space-opacity" type="range" min="10" max="100" value="65"></label><button class="button quiet small" id="remove-backdrop">Remove backdrop</button></section>
@@ -634,7 +662,12 @@ const spaceTools=node('aside','space-inspector');spaceTools.id='space-tools';spa
 $('light-inspector').after(spaceTools);
 const spaceLayer=node('div','space-layer');spaceLayer.id='space-layer';const photo=node('img','space-photo');photo.id='space-photo';photo.alt='Stage reference photo';photo.hidden=true;const meshCanvas=node('canvas','space-mesh');meshCanvas.id='space-mesh';meshCanvas.setAttribute('aria-label','Imported scan geometry reference');spaceLayer.append(photo,meshCanvas);$('stage').prepend(spaceLayer);
 const spaceButton=node('button','tool-button','Space');spaceButton.id='tool-space';spaceButton.title='Design your stage, add objects, and set optional measurements';spaceButton.setAttribute('aria-pressed','false');$('tool-arrange').after(spaceButton);
-const baseSetTool=setTool;setTool=function(next){if(gesture)finishGesture(true);baseSetTool(next);$('stage').classList.toggle('space-edit',next==='space');spaceButton.classList.toggle('active',next==='space');spaceButton.setAttribute('aria-pressed',String(next==='space'));spaceTools.hidden=next!=='space';$('light-inspector').hidden=next==='space';if(next==='space'){$('canvas-hint').textContent='Drag stage objects to place them';$('stage-mode-label').textContent='Space editor';contextOpen=false}syncObjectProperties();syncPopover();requestAnimationFrame(drawSpace)};spaceButton.onclick=()=>setTool(tool==='space'?'select':'space');
+const objectTransform=node('div','object-transform');objectTransform.id='object-transform';objectTransform.hidden=true;objectTransform.setAttribute('role','group');
+objectTransform.innerHTML='<button class="object-resize-handle nw" data-resize-corner="nw" aria-label="Resize top-left corner" title="Resize · Shift-drag keeps proportions"></button><button class="object-resize-handle ne" data-resize-corner="ne" aria-label="Resize top-right corner" title="Resize · Shift-drag keeps proportions"></button><button class="object-resize-handle sw" data-resize-corner="sw" aria-label="Resize bottom-left corner" title="Resize · Shift-drag keeps proportions"></button><button class="object-resize-handle se" data-resize-corner="se" aria-label="Resize bottom-right corner" title="Resize · Shift-drag keeps proportions"></button>';
+const objectQuickbar=node('div','object-quickbar');objectQuickbar.id='object-quickbar';objectQuickbar.hidden=true;objectQuickbar.setAttribute('role','toolbar');objectQuickbar.setAttribute('aria-label','Selected stage object actions');
+objectQuickbar.innerHTML='<div class="object-quick-actions"><span id="object-quick-name"></span><button id="object-quick-duplicate" title="Duplicate selected object">Duplicate</button><button id="object-quick-rotate" title="Rotate selected object 90°">Rotate ↻</button><button id="object-quick-lock" aria-pressed="false">Lock</button><button class="danger" id="object-quick-delete">Delete</button></div><span class="object-transform-hint" id="object-transform-hint">Drag corners to resize · Shift keeps proportions</span>';
+$('stage').append(objectTransform,objectQuickbar);
+const baseSetTool=setTool;setTool=function(next){if(objectGesture)finishObjectGesture(true,false);if(gesture)finishGesture(true);baseSetTool(next);$('stage').classList.toggle('space-edit',next==='space');spaceButton.classList.toggle('active',next==='space');spaceButton.setAttribute('aria-pressed',String(next==='space'));spaceTools.hidden=next!=='space';$('light-inspector').hidden=next==='space';if(next==='space'){$('canvas-hint').textContent='Drag stage objects to place them';$('stage-mode-label').textContent='Space editor';contextOpen=false}syncObjectProperties();syncPopover();requestAnimationFrame(drawSpace)};spaceButton.onclick=()=>setTool(tool==='space'?'select':'space');
 function patchSpace(patch){if(act({op:'space',space:{...state.project.space,...patch}})){spaceVersion++;renderSpace();return true}return false}
 function renderSpace(){const s=state.project.space;$('space-mode').value=s.mode;$('space-opacity').value=s.opacity*100;$('scan-view').value=s.projection;$('scan-axis').value=s.upAxis;$('scan-yaw').value=s.yaw;for(const e of [$('scan-view'),$('scan-axis'),$('scan-yaw')])e.disabled=s.mode!=='scan'||!s.mesh;$('space-opacity').disabled=s.mode==='empty';$('remove-backdrop').disabled=s.mode==='empty';photo.hidden=s.mode!=='photo'||!s.photo;meshCanvas.hidden=s.mode!=='scan'||!s.mesh;if(s.photo&&photo.getAttribute('src')!==s.photo)photo.src=s.photo;if(!s.photo)photo.removeAttribute('src');photo.style.opacity=s.opacity;meshCanvas.style.opacity=s.opacity;$('stage').classList.toggle('has-space',s.mode==='photo'&&!!s.photo||s.mode==='scan'&&!!s.mesh);$('space-caption').textContent=s.mode==='photo'&&s.photo?'Photo canvas · '+s.photoName+' · Place lights with Arrange. A photo provides a 2D guide; it does not infer fixtures or room depth.':s.mode==='scan'&&s.mesh?'Polycam guide · '+s.mesh.name+' · Simplified mesh, no textures. Lights are a 2D overlay; changing the view may require repositioning them.':'Add a stage photo or Polycam OBJ, then arrange lights over it. Add basic objects to sketch your space.';
  objectElements.forEach(e=>e.remove());objectElements.clear();
@@ -668,25 +701,77 @@ function syncObjectProperties(){
  }
  for(const [id,e]of objectElements){e.classList.toggle('selected',id===objectId);e.setAttribute('aria-pressed',String(id===objectId));e.tabIndex=tool==='space'?0:-1}
  for(const b of document.querySelectorAll('[data-space-object]'))b.setAttribute('aria-pressed',String(b.dataset.spaceObject===objectId));
+ syncObjectTransform();
 }
 function removeObject(){
  const o=state.project.space.objects.find(o=>o.id===objectId);if(!o)return;
  if(o.locked){spaceError('space-object-error','Unlock this object before removing it.');return}
- const id=objectId;if(editSpace({objects:state.project.space.objects.filter(o=>o.id!==id)},'space-object-error')){objectId=null;syncObjectProperties()}
+ const id=objectId;if(objectGesture)finishObjectGesture(true,false);if(editSpace({objects:state.project.space.objects.filter(o=>o.id!==id)},'space-object-error')){objectId=null;syncObjectProperties();$('stage').focus({preventScroll:true})}
+}
+function syncObjectTransform(o=state.project.space.objects.find(o=>o.id===objectId)){
+ objectTransform.hidden=objectQuickbar.hidden=tool!=='space'||!o;if(objectTransform.hidden)return;
+ Object.assign(objectTransform.style,{left:o.x+'%',top:o.y+'%',width:o.width+'%',height:o.height+'%',transform:'translate(-50%,-50%) rotate('+o.rotation+'deg)'});
+ objectTransform.classList.toggle('locked',o.locked);objectTransform.setAttribute('aria-label','Resize '+o.name);
+ for(const handle of objectTransform.querySelectorAll('[data-resize-corner]')){handle.hidden=o.locked;handle.disabled=o.locked;const diagonal=['nw','se'].includes(handle.dataset.resizeCorner)?45:135;handle.style.cursor=['ew-resize','nwse-resize','ns-resize','nesw-resize'][((Math.round((o.rotation+diagonal)/45)%4)+4)%4]}
+ $('object-quick-name').textContent=o.name;$('object-quick-name').title=o.name;
+ $('object-quick-duplicate').disabled=state.project.space.objects.length>=100;
+ $('object-quick-rotate').disabled=$('object-quick-delete').disabled=o.locked;
+ $('object-quick-lock').textContent=o.locked?'Unlock':'Lock';$('object-quick-lock').setAttribute('aria-pressed',String(o.locked));
+ $('object-transform-hint').textContent=o.locked?'Unlock to move or resize':'Drag corners to resize · Shift keeps proportions';
+}
+function previewObjectTransform(o){
+ const el=objectElements.get(o.id);if(!el)return;
+ Object.assign(el.style,{left:o.x+'%',top:o.y+'%',width:o.width+'%',height:o.height+'%'});syncObjectTransform(o);
+ for(const key of ['x','y','width','height'])$('object-'+key).value=Number(o[key].toFixed(2));
+ if(o.id===mainStage()?.id)renderSpaceMeasurements(o);
+}
+function finishObjectGesture(cancel=false,restoreFocus=true){
+ const g=objectGesture;if(!g)return;objectGesture=null;
+ if(g.el.hasPointerCapture(g.pointerId))g.el.releasePointerCapture(g.pointerId);
+ if(!cancel&&g.after)patchSpace({objects:state.project.space.objects.map(o=>o.id===g.id?g.after:o)});else renderSpace();
+ if(restoreFocus){const target=g.corner?objectTransform.querySelector('[data-resize-corner="'+g.corner+'"]'):objectElements.get(g.id);(target||$('stage')).focus({preventScroll:true})}
+}
+function bindObjectGesture(el,g){
+ objectGesture=g;el.setPointerCapture(g.pointerId);
+ el.onpointermove=e=>{
+  if(objectGesture!==g||e.pointerId!==g.pointerId)return;
+  const dx=e.clientX-g.x,dy=e.clientY-g.y;if(!g.after&&Math.hypot(dx,dy)<2)return;
+  if(g.corner)g.after=resizeSpaceObject(g.before,g.corner,dx,dy,g.rect,{keepRatio:e.shiftKey,snap:state.project.space.snap});
+  else{let x=g.before.x+dx/g.rect.width*100,y=g.before.y+dy/g.rect.height*100;if(state.project.space.snap){x=Math.round(x/5)*5;y=Math.round(y/5)*5}g.after={...g.before,x:Math.max(2,Math.min(98,x)),y:Math.max(2,Math.min(98,y))}}
+  previewObjectTransform(g.after);
+ };
+ el.onpointerup=e=>{if(objectGesture===g&&e.pointerId===g.pointerId)finishObjectGesture()};
+ el.onpointercancel=e=>{if(objectGesture===g&&e.pointerId===g.pointerId)finishObjectGesture(true)};
+ el.onlostpointercapture=()=>{if(objectGesture===g)finishObjectGesture(true)};
 }
 function startObjectDrag(e){
- if(tool!=='space'||e.button!==0)return;e.preventDefault();e.stopPropagation();selectSpaceObject(e.currentTarget.dataset.object);
+ if(tool!=='space'||e.button!==0||objectGesture)return;e.preventDefault();e.stopPropagation();selectSpaceObject(e.currentTarget.dataset.object);
  const o=state.project.space.objects.find(o=>o.id===objectId);if(o.locked)return;
- objectGesture={id:o.id,pointerId:e.pointerId,x:e.clientX,y:e.clientY,before:{...o},rect:$('stage').getBoundingClientRect()};e.currentTarget.setPointerCapture(e.pointerId);const el=e.currentTarget;
- el.onpointermove=move=>{
-  const g=objectGesture;if(!g||move.pointerId!==g.pointerId)return;
-  let x=g.before.x+(move.clientX-g.x)/g.rect.width*100,y=g.before.y+(move.clientY-g.y)/g.rect.height*100;
-  if(state.project.space.snap){x=Math.round(x/5)*5;y=Math.round(y/5)*5}
-  g.after={...g.before,x:Math.max(2,Math.min(98,x)),y:Math.max(2,Math.min(98,y))};el.style.left=g.after.x+'%';el.style.top=g.after.y+'%';
- };
- const finish=cancel=>{const g=objectGesture;if(!g)return;objectGesture=null;if(!cancel&&g.after)patchSpace({objects:state.project.space.objects.map(o=>o.id===g.id?g.after:o)});else renderSpace();objectElements.get(g.id)?.focus({preventScroll:true})};
- el.onpointerup=()=>finish(false);el.onpointercancel=()=>finish(true);el.onlostpointercapture=()=>finish(true);
+ bindObjectGesture(e.currentTarget,{id:o.id,pointerId:e.pointerId,x:e.clientX,y:e.clientY,before:{...o},rect:$('stage').getBoundingClientRect(),el:e.currentTarget});
 }
+function startObjectResize(e){
+ const o=state.project.space.objects.find(o=>o.id===objectId);if(tool!=='space'||e.button!==0||objectGesture||!o||o.locked)return;
+ e.preventDefault();e.stopPropagation();e.currentTarget.focus({preventScroll:true});
+ bindObjectGesture(e.currentTarget,{id:o.id,corner:e.currentTarget.dataset.resizeCorner,pointerId:e.pointerId,x:e.clientX,y:e.clientY,before:{...o},rect:$('stage').getBoundingClientRect(),el:e.currentTarget});
+}
+for(const handle of objectTransform.querySelectorAll('[data-resize-corner]')){
+ handle.onpointerdown=startObjectResize;handle.onclick=e=>e.stopPropagation();
+ handle.onkeydown=e=>{
+  if(['Delete','Backspace'].includes(e.key)){e.preventDefault();removeObject();return}
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)||objectGesture)return;
+  const o=state.project.space.objects.find(o=>o.id===objectId);if(!o||o.locked)return;e.preventDefault();e.stopPropagation();
+  const step=e.shiftKey?10:2,dx=e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0,dy=e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0;
+  const next=resizeSpaceObject(o,handle.dataset.resizeCorner,dx,dy,$('stage').getBoundingClientRect());
+  if(updateSpaceObject({x:next.x,y:next.y,width:next.width,height:next.height}))handle.focus({preventScroll:true});
+ };
+}
+$('object-quick-duplicate').onclick=()=>$('duplicate-object').click();
+$('object-quick-delete').onclick=removeObject;
+$('object-quick-lock').onclick=()=>{const o=state.project.space.objects.find(o=>o.id===objectId);if(o)updateSpaceObject({locked:!o.locked})};
+$('object-quick-rotate').onclick=()=>{const o=state.project.space.objects.find(o=>o.id===objectId);if(o)updateSpaceObject({rotation:o.rotation>=90?o.rotation-270:o.rotation+90})};
+$('stage').addEventListener('pointerdown',e=>{if(tool==='space'&&e.button===0&&!objectGesture&&!e.target.closest('.stage-object,#object-transform,#object-quickbar')){objectId=null;syncObjectProperties()}});
+objectQuickbar.addEventListener('keydown',e=>{if(['Delete','Backspace'].includes(e.key)){e.preventDefault();removeObject()}});
+window.addEventListener('resize',()=>finishObjectGesture(true));window.addEventListener('blur',()=>finishObjectGesture(true,false));
 function projectMesh(vertices,s){const yaw=s.yaw*Math.PI/180,c=Math.cos(yaw),sn=Math.sin(yaw);return vertices.map(v=>{let [x,y,z]=v;if(s.upAxis==='z')[y,z]=[z,-y];const rx=x*c-z*sn,rz=x*sn+z*c;if(s.projection==='top')return[rx,rz];if(s.projection==='front')return[rx,-y];return[(rx-rz)*.707,(rx+rz)*.32-y*.85]})}
 function drawSpace(){const s=state.project.space;if(!s.mesh||s.mode!=='scan'||view!=='stage')return;const rect=$('stage').getBoundingClientRect();if(!rect.width||!rect.height)return;const dpr=Math.min(2,window.devicePixelRatio||1),size=[rect.width,rect.height,dpr].join(':');if(drawnVersion===spaceVersion&&drawnSize===size)return;drawnVersion=spaceVersion;drawnSize=size;meshCanvas.width=rect.width*dpr;meshCanvas.height=rect.height*dpr;const ctx=meshCanvas.getContext('2d');if(!ctx)return;ctx.scale(dpr,dpr);const points=projectMesh(s.mesh.vertices,s),lo=[Infinity,Infinity],hi=[-Infinity,-Infinity];for(const p of points)for(let j=0;j<2;j++){lo[j]=Math.min(lo[j],p[j]);hi[j]=Math.max(hi[j],p[j])}const scale=Math.min(rect.width*.84/Math.max(.001,hi[0]-lo[0]),rect.height*.80/Math.max(.001,hi[1]-lo[1]));const p=points.map(v=>[(v[0]-(lo[0]+hi[0])/2)*scale+rect.width/2,(v[1]-(lo[1]+hi[1])/2)*scale+rect.height/2]);ctx.strokeStyle='#8ca8d880';ctx.lineWidth=.65;ctx.beginPath();for(const [a,b]of s.mesh.edges){ctx.moveTo(...p[a]);ctx.lineTo(...p[b])}ctx.stroke()}
 async function importPhoto(file){if(!file)return;if(file.size>25*1024*1024)throw Error('Use a photo under 25 MB');if(!/^image\//.test(file.type))throw Error('Choose a photo');const url=URL.createObjectURL(file);try{const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('This photo format could not be opened. Use JPG, PNG or WebP.'));img.src=url});const scale=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,canvas.width,canvas.height);if(patchSpace({photo:canvas.toDataURL('image/jpeg',.85),photoName:file.name.slice(0,80)||'Stage photo',mode:'photo'})){setTool('arrange');toast('Photo canvas ready. Drag your lights into place. Use Space to add stage objects.')}}finally{URL.revokeObjectURL(url)}}
@@ -753,8 +838,8 @@ function renderSpaceDesign(){
  for(const o of s.objects){const b=node('button','space-object-row');b.setAttribute('data-space-object',o.id);b.setAttribute('aria-pressed',String(o.id===objectId));b.append(node('span','',o.name),node('span','',o.locked?'Locked':o.id===main?.id?'Main stage':o.kind));b.onclick=()=>{objectId=o.id;syncObjectProperties()};list.append(b)}
  renderSpaceMeasurements();
 }
-function renderSpaceMeasurements(){
- const s=state.project.space,main=mainStage();
+function renderSpaceMeasurements(main=mainStage()){
+ const s=state.project.space;
  let layer=$('space-measure-layer');if(!layer){layer=node('div','space-measure-layer');layer.id='space-measure-layer';layer.setAttribute('aria-hidden','true');$('stage').append(layer)}
  layer.replaceChildren();layer.hidden=!s.measurements;
  if(s.measurements&&main){
