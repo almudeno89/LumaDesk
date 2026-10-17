@@ -14,7 +14,7 @@ The owner can eventually run a simple diagnostic or observe a fixture during a c
 | --- | --- | --- | --- |
 | ADJ myDMX 3.0 interface; currently used with myDMX 3 software | 1 | USB to the Mac, if independent control is supported | Actual USB identity, protocol/firmware support, Mac driver or SDK evidence |
 | Chauvet DJ Pinspot Bar | 1 | **Wireless DMX**, per the owner's correction | Exact fixture channel map; compatible transmitter/receiver system |
-| Chauvet DJ COLORband Q3BT ILS | 2 | Bluetooth, currently controlled with BTAir | Exact Bluetooth protocol and model-specific DMX fallback definition |
+| Chauvet DJ COLORband Q3BT ILS | 2 | Bluetooth, currently controlled with BTAir | Exact Bluetooth protocol; manufacturer DMX chart now verified in the Rev. 2 manual |
 | Chauvet DJ SlimPAR Q12 BT | 2 | Bluetooth, currently controlled with BTAir | Exact Bluetooth protocol; DMX fallback definition exists |
 | Boulder Pro 19x15W zoom wash moving head, warm-white/cool-white 2-in-1 LEDs | 2 | Planned wireless DMX | Exact model-specific channel chart and operating mode |
 | 32-channel 96A RGBW DMX512 LED decoder, DC5–24V, advertised 8/16-bit | 1, controlling 8 DIY vertical LED strips | Wired DMX | Actual selected mode and output wiring; marketing title is not a unique model ID |
@@ -30,6 +30,8 @@ The existing demo has 14 fixtures and five vertical bars. The physical inventory
 
 No verified supported driver for this exact retail interface on current macOS was found in the inspected sources. This does not prove that the interface is locked or impossible to reuse.
 
+The subsequently accessible [official ADJ myDMX 3 page][adj-official] confirms a Mac/Windows software-and-hardware system, 512 included live DMX channels, and software upgrades through DMXsoft. It does not establish an independent Mac SDK or protocol for Luma. Compatibility with ADJ's own Mac software must not be confused with verified third-party access.
+
 - Current [QLC+ USB documentation][qlc-usb] lists supported interfaces but does not list myDMX. Inspection of QLC+ plugins/docs and OLA's plugin source did not find a myDMX/SIUDI driver. The [OLA request about myDMX 2.0][ola-issue] is about a different version and does not settle 3.0 compatibility.
 - [jesselang/mydmx][old-mydmx] is an older Linux kernel driver using USB vendor/product IDs `6244:0301`. It is not evidence of a Mac driver or compatibility with myDMX 3.0.
 - [artnet-siudi][siudi-match] matches SIUDI 8A/9A devices with IDs `6244:0421` and `6244:0441`. It does not establish which retail hardware the owner's box contains. Its [initialization sequence][siudi-init] includes an unexplained fixed block; the inspected project has no Mac build/test documentation or exact myDMX 3.0 claim.
@@ -42,6 +44,8 @@ Do not tell the owner a replacement interface is already necessary. Keep reuse a
 ### 2. BTAir fixtures: Mac transport is available; the fixture protocol is unverified
 
 The owner reports controlling the four fixtures with BTAir. That establishes their working existing control route. It does not reveal the radio details or the command format available to another application.
+
+Official documentation is now accessible. The [SlimPAR Q12BT Rev. 4 manual][slimpar-manual] (pages 7–9) and [COLORband Q3BT ILS Rev. 2 manual][colorband-manual] (pages 8 and 12) explicitly describe the `bLE` mode and BTAir control. The COLORband manual says its displayed Bluetooth ID identifies it in BTAir. The [official BTAir manual][btair-manual] describes discovery, grouping, and red/green/blue/amber color commands at the user-interface level; the inspected manuals do not publish GATT UUIDs, packet formats, or a third-party API. The product pages specify Bluetooth 4.2, which alone does not establish the required GATT interface or command protocol.
 
 - [Bleak][bleak] is a Bluetooth Low Energy GATT client with macOS CoreBluetooth support. Its [Mac documentation][bleak-mac] describes the normal Bluetooth permission and packaging requirements.
 - Bleak would be a possible connector component **if the fixtures expose a compatible BLE interface**. Their exact Bluetooth type, services, characteristic IDs, command bytes, pairing/authentication requirements, and write rate remain unverified.
@@ -59,9 +63,9 @@ Preserve the requested Bluetooth route in the design. Wireless DMX receivers on 
 
 The [Open Fixture Library definition for SlimPAR Q12 BT][slimpar-ofl] identifies a 3-pin DMX input, **RGBA** emitters, and 4-channel/8-channel modes. [QLC+'s corresponding definition][slimpar-qlc] independently lists the same color channels and channel counts. The fourth color is amber, not white. A generic RGBW mapping would be wrong.
 
-These are community definitions, not a substitute for the fixture manual and a bench check. The OFL file itself flags an unresolved strobe-range question; do not infer exact strobe behavior from it without verification.
+The [official SlimPAR Q12BT Rev. 4 manual][slimpar-manual] now confirms RGBA and 4/8-channel modes (pages 7–8). There is a discrepancy: the current product web page lists "12 or 4" channels, while the linked manual's menu and channel chart specify 4/8. Use the actual fixture's available menu modes with the manual, rather than copying the web-page count. The OFL file flags an unresolved strobe-range question; bench checks are still needed for exact output behavior.
 
-QLC+ also contains a [COLORband Q3BT definition][colorband-qlc] with RGBA channels and 4/6/16-channel modes. It is labeled **Q3BT**, not **Q3BT ILS**. It is a useful lead, but must not be presented as a verified profile for the exact ILS version.
+QLC+ also contains a [COLORband Q3BT definition][colorband-qlc] with RGBA channels and 4/6/16-channel modes. It is labeled **Q3BT**, not **Q3BT ILS**. The subsequently inspected [official COLORband Q3BT ILS manual][colorband-manual] now independently confirms the exact ILS model's 4/6/16-channel modes and provides its channel chart (pages 8–10). Implement against that model-specific chart; do not assume the older library definition is interchangeable in every detail. The manufacturer also documents D-Fi USB compatibility as an optional wireless DMX route, separate from Bluetooth.
 
 The Boulder moving heads are described as warm-white/cool-white fixtures. Luma's current synthetic RGB moving-head profile is not an established mapping for them. The decoder's 8/16-bit options and the Eliminator's exact mode also need genuine channel definitions; do not assign speculative addresses or assume a final universe count yet.
 
@@ -75,7 +79,7 @@ Luma's older Python reference already contains a minimal ArtDmx sender. It is se
 
 ## Proposed implementation order
 
-1. **Own discovery and evidence collection.** Obtain exact vendor documentation when network access permits. Prepare a simple Mac diagnostic for USB identity and Bluetooth discovery, keeping it separate from lighting output. The developer interprets the results.
+1. **Own discovery and evidence collection.** The Chauvet manuals and ADJ product page are now accessible and inspected. Next, prepare a simple Mac diagnostic for USB identity and Bluetooth discovery, keeping it separate from lighting output. It should inspect the existing interface and discover targeted fixtures/services without sending guessed lighting commands. The developer interprets the results. Exact USB output and Bluetooth command support remain unresolved.
 2. **Build Luma's Mac connection layer.** Keep UI controls independent of transport. Support a documented Art-Net output path; add a myDMX USB backend only when its protocol and Mac support are established. Add a separate BTAir backend only after valid commands are known. A user-operated Luma connector avoids dependence on the incumbent lighting program.
 3. **Create verified fixture profiles.** Map the real emitters and movement channels, the eight-strip decoder, the dimmer box, and multi-head/multi-zone fixtures correctly. Preserve the approved interface while adding hardware profiles separately from artwork.
 4. **Test one device at a time.** Verify selection, basic dimming/color, transitions, output rate, blackout, deliberate reconnect, and device behavior on controller loss. For Bluetooth, progress from one light to all four and measure response and range. Confirm wireless DMX transmitter/receiver interoperability separately.
@@ -85,14 +89,25 @@ The source can remain entirely on GitHub. Physical control still needs a local r
 
 ## Limits of this research
 
-Public GitHub source and documentation were accessible. The environment's network proxy returned 403 for the attempted official manufacturer sites and Apple documentation, including `www.chauvetdj.com`, `www.adj.com`, `www.nicolaudie.com`, `www.dmxsoft.com`, `dmxking.com`, `www.enttec.com`, and `developer.apple.com`. No network restriction was bypassed. No vendor SDK, licensing claim, exact current product recommendation, or complete manufacturer's Bluetooth protocol was verified.
+The initial research was limited to public GitHub sources because official manufacturer requests returned network-policy 403 errors. Seven research destinations were added to the environment configuration while preserving the existing presets. A subsequent runtime check confirmed access to the official Chauvet product pages and manuals, ADJ's current myDMX 3 page, and DMXsoft. No further settings action is currently needed for those inspected sources. Not every added destination or redirect has been independently rechecked.
 
-Those seven research destinations were added to the cloud environment configuration draft while preserving its existing network presets. Saving that draft does not apply the changes to the running machine; the environment settings must be reviewed/saved and the environment published before relying on the new configuration. Manufacturer access must then be retried.
+No independent Mac SDK for the exact myDMX interface, its applicable licensing terms, or complete manufacturer's Bluetooth command protocol was verified. Official consumer manuals establish supported fixture modes, not working Luma drivers.
 
 No physical device is attached to this cloud machine. There is no verified Luma hardware output, Mac connector release, BTAir control, or synchronized mixed-fixture show yet. This document narrows the engineering work; it does not mark the integration complete.
 
 ## Source snapshots
 
+Manufacturer pages/manuals inspected after the access change:
+
+- [ADJ myDMX 3.0 product page][adj-official]
+- [Chauvet SlimPAR Q12BT product page](https://www.chauvetdj.com/products/slimpar-q12-bt/) and [Rev. 4 user manual][slimpar-manual]
+- [Chauvet COLORband Q3BT ILS product page](https://www.chauvetdj.com/products/colorband-q3bt-ils/) and [Rev. 2 user manual][colorband-manual]
+- [Chauvet BTAir product page](https://www.chauvetdj.com/products/btair/) and [BTAir user manual][btair-manual]
+
+[adj-official]: https://www.adj.com/products/mydmx-3
+[slimpar-manual]: https://www.chauvetdj.com/wp-content/uploads/2018/03/SlimPAR_Q12BT_UM_Rev4.pdf
+[colorband-manual]: https://www.chauvetdj.com/wp-content/uploads/2023/03/COLORband_Q3BT_ILS_UM_Rev2.pdf
+[btair-manual]: https://www.chauvetdj.com/wp-content/uploads/2018/02/BTAir_UM_Rev1_WO-1.pdf
 [qlc-usb]: https://github.com/mcallegari/qlcplus/blob/b3e82d587e4122607248c6f7c255db91c5d42954/resources/docs/html_en_EN/dmxusbplugin.html
 [ola-issue]: https://github.com/OpenLightingProject/ola/issues/1082
 [old-mydmx]: https://github.com/jesselang/mydmx/blob/3ed5e8ac7e7f339f50e503433c787d34ddb95308/src/mydmx.c#L17-L32
