@@ -10,6 +10,10 @@ On October 17, 2026, Pablo explicitly approved the version with the per-light iO
 
 An earlier completed request moved Effects studio from below the stage to its own left column because the right-hand inspector obscured the previous layout while scrolling. The left panel now has independent scrolling, a fixed header, and an always-visible action footer. The center holds the stage and scenes, with color and movement controls on the right. Responsive layouts use fewer columns at narrower widths.
 
+## Pinspot bar appearance
+
+Added `pinspot-bar` to both fixture-shape selectors, appearance validation, artwork and footprint helpers. The horizontal 112 × 48 px silhouette has six spotlight heads with emitters driven by the fixture's existing color/intensity. Automatic appearance recognizes “Pinspot Bar” in a name/group. Stage, sidebar and context menu share the SVG; selection, arrangement, duplication, Save/Open and Export use the existing fixture model. Existing vertical bars remain unchanged. This is a visual style inspired by Chauvet DJ Pinspot Bar, not an exact manufacturer channel profile, individual head control, or a physical optics model.
+
 ## Explicit project Save · October 17, 2026
 
 The top-bar Save button and ⌘S / Ctrl+S write a validated whole project to `localStorage` under `luma-desk.saved-project.v1`, in an envelope with `version:1`, `savedAt`, and `project`. A single atomic write preserves the previous save on quota/permission failure. Startup restores through engine validation before UI initialization, and skips automatic Living light demo playback for restored projects. Invalid stored data is retained untouched and a recovery message points to Open. Save is explicit, not automatic; one current project is stored per site/browser. Import marks the project unsaved until Save. Export still provides a separate downloadable backup.
