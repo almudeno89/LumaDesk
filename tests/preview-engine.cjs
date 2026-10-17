@@ -103,7 +103,7 @@ const st=fresh();st.act({op:'fixture',ids:['f9'],patch:{strobe:.1}},0);assert(st
 // Physical metadata and manual aim are independent from color, dimmer and scene timing.
 {
  const e=fresh(),legacy=e.copy(e.project);for(const f of legacy.fixtures){delete f.forward;delete f.mounting}
- const migrated=new LumaPreviewEngine(legacy);assert.equal(migrated.project.fixtures[0].mounting,'normal');assert.equal(migrated.project.fixtures[0].forward,0);
+ const migrated=new LumaPreviewEngine(legacy);assert.equal(migrated.project.fixtures[0].mounting,'normal');assert.equal(migrated.project.fixtures[0].forward,0);assert.equal(migrated.project.fixtures.find(f=>f.id==='f7').forward,180);
  e.act({op:'edit_fixture',id:'f9',patch:{mounting:'upside-down',forward:137}},0);
  const exported=new LumaPreviewEngine(e.copy(e.project));assert.equal(exported.project.fixtures.find(f=>f.id==='f9').forward,137);assert.equal(exported.project.fixtures.find(f=>f.id==='f9').mounting,'upside-down');
  e.act({op:'duplicate_fixture',id:'f9'},0);assert.equal(e.project.fixtures.at(-1).forward,137);assert.equal(e.project.fixtures.at(-1).mounting,'upside-down');

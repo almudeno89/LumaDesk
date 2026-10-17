@@ -181,6 +181,7 @@ vm.runInContext(`
 {
  const project=localPreview.copy(localPreview.project);act({op:'import',project:{...project,effects:{}}},true);switchTab('stage');setTool('select');setSelection(['f9']);renderLiveStage();
  const f=state.project.fixtures.find(f=>f.id==='f9');
+ for(const forward of [0,90,180,270]){const fixed={...f,profile:'RGBW',zone:'Front light',forward},g=stageLightGeometry(fixed,state.looks.f9),angle=forward*Math.PI/180,dx=g.target.x-g.origin.x,dy=g.target.y-g.origin.y;assert(Math.abs(dx*Math.cos(angle)-dy*Math.sin(angle))<1e-6);assert(dx*Math.sin(angle)+dy*Math.cos(angle)>0)}
  for(const mounting of ['normal','upside-down'])for(const forward of [0,37,90,180,279,360])for(const x of [0,200,500,1000])for(const y of [0,150,650]){
   const fixture={...f,mounting,forward},look=stageAimLook(fixture,{x,y}),target=stageLightGeometry(fixture,{...state.looks.f9,...look}).target;
   assert(Math.abs(target.x-x)<1e-6);assert(Math.abs(target.y-y)<1e-6);assert(look.pan>=0&&look.pan<=1&&look.tilt>=0&&look.tilt<=1);
