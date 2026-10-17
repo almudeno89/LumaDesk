@@ -1,6 +1,10 @@
-# Luma Desk development handoff
+# Luma Design development handoff
 
 Prepared October 13, 2026 from the latest `Luma-Desk-Preview.html` (saved version 6). The initial `index.html` was an exact copy of that file; subsequent changes are recorded in Git. This is a project handoff, not a completed migration to a framework or desktop runtime.
+
+## Product name · October 17, 2026
+
+The app is now named **Luma Design**. The header, browser title, import error, export filename and current development metadata use this name. Keep the GitHub repository/Pages URL, `luma-desk-v1`/`luma-desk-v2` format IDs and `luma-desk.saved-project.v1` storage key unchanged so existing links and projects continue working. The user supplied a black-and-gold LD logo as an inline chat image, but its original file was not available in the workspace; replacing the existing icon and adding a browser-tab icon are pending a PNG/JPG file attachment. Do not substitute a reconstructed logo.
 
 ## Product intent
 

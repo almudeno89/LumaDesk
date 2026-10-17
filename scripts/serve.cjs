@@ -40,6 +40,6 @@ server.on('error', error => {
   process.exitCode = 1;
 });
 server.listen(port, '127.0.0.1', () => {
-  console.log(`Luma Desk: http://127.0.0.1:${port}`);
+  console.log(`Luma Design: http://127.0.0.1:${port}`);
   console.log('Visual preview only. Press Control-C to stop.');
 });

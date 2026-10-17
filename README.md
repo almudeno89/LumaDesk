@@ -1,4 +1,4 @@
-# Luma Desk
+# Luma Design
 
 Pablo's church lighting studio, transferred into a standalone development folder on October 13, 2026. This package preserves the latest working HTML prototype, including the left Effects studio panel.
 
