@@ -4,7 +4,7 @@ Prepared October 13, 2026 from the latest `Luma-Desk-Preview.html` (saved versio
 
 ## Product name · October 17, 2026
 
-The app is now named **Luma Design**. The header, browser title, import error, export filename and current development metadata use this name. Keep the GitHub repository/Pages URL, `luma-desk-v1`/`luma-desk-v2` format IDs and `luma-desk.saved-project.v1` storage key unchanged so existing links and projects continue working. The user supplied a black-and-gold LD logo as an inline chat image, but its original file was not available in the workspace; replacing the existing icon and adding a browser-tab icon are pending a PNG/JPG file attachment. Do not substitute a reconstructed logo.
+The app is now named **Luma Design**. The header, browser title, import error, export filename and current development metadata use this name. Keep the GitHub repository/Pages URL, `luma-desk-v1`/`luma-desk-v2` format IDs and `luma-desk.saved-project.v1` storage key unchanged so existing links and projects continue working. The original black-and-gold LD logo was supplied in `LumaDesign Logo3.png.zip`. Its exact transparent PNG is stored at `assets/luma-design-logo.png` and used for the header, browser-tab icon and Apple touch icon. Preserve the original artwork. Asset links are relative to support GitHub Pages under `/LumaDesk/` and direct file opening. The preview server explicitly allows this PNG route alongside the HTML.
 
 ## Product intent
 

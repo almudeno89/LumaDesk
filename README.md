@@ -11,7 +11,7 @@ The handoff is in `docs/HANDOFF.md`. The folder contains the app and its tests; 
 
 ## Run the current app
 
-Open `index.html` directly in a browser. It has no external assets or package dependencies.
+Open `index.html` directly in a browser, keeping the `assets` folder beside it. The original Luma Design logo is bundled locally; no network assets or package dependencies are required.
 
 With Node.js 18 or newer, you can also run:
 
@@ -19,7 +19,7 @@ With Node.js 18 or newer, you can also run:
 npm start
 ```
 
-Then open `http://127.0.0.1:8770`. The server serves only the preview, binds to loopback, and sends no DMX commands. `PORT=8771 npm start` selects a different port. No `npm install` is necessary.
+Then open `http://127.0.0.1:8770`. The server serves only the preview and its logo, binds to loopback, and sends no DMX commands. `PORT=8771 npm start` selects a different port. No `npm install` is necessary.
 
 ## Save your project
 

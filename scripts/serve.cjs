@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const file = path.resolve(__dirname, '../index.html');
+const logo = path.resolve(__dirname, '../assets/luma-design-logo.png');
 const port = Number(process.env.PORT || 8770);
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   console.error('PORT must be an integer between 1 and 65535.');
@@ -18,21 +19,22 @@ const server = http.createServer((req, res) => {
     res.writeHead(204);
     return res.end();
   }
-  if (!['/', '/index.html'].includes(pathname)) {
+  const isLogo = pathname === '/assets/luma-design-logo.png';
+  if (!isLogo && !['/', '/index.html'].includes(pathname)) {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     return res.end(req.method === 'HEAD' ? undefined : 'Not found');
   }
-  fs.readFile(file, (error, html) => {
+  fs.readFile(isLogo ? logo : file, (error, content) => {
     if (error) {
       res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-      return res.end(req.method === 'HEAD' ? undefined : 'Could not read index.html');
+      return res.end(req.method === 'HEAD' ? undefined : 'Could not read requested asset');
     }
     res.writeHead(200, {
-      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Type': isLogo ? 'image/png' : 'text/html; charset=utf-8',
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff'
     });
-    res.end(req.method === 'HEAD' ? undefined : html);
+    res.end(req.method === 'HEAD' ? undefined : content);
   });
 });
 server.on('error', error => {
