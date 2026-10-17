@@ -745,7 +745,7 @@ function bindObjectGesture(el,g){
  el.onlostpointercapture=()=>{if(objectGesture===g)finishObjectGesture(true)};
 }
 function startObjectDrag(e){
- if(tool!=='space'||e.button!==0||objectGesture)return;e.preventDefault();e.stopPropagation();selectSpaceObject(e.currentTarget.dataset.object);
+ if(tool!=='space'||e.button!==0||objectGesture)return;e.preventDefault();e.stopPropagation();e.currentTarget.focus({preventScroll:true});selectSpaceObject(e.currentTarget.dataset.object);
  const o=state.project.space.objects.find(o=>o.id===objectId);if(o.locked)return;
  bindObjectGesture(e.currentTarget,{id:o.id,pointerId:e.pointerId,x:e.clientX,y:e.clientY,before:{...o},rect:$('stage').getBoundingClientRect(),el:e.currentTarget});
 }
