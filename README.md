@@ -50,7 +50,7 @@ Right-click any light on the stage or in the left light list to open its frosted
 
 Actions target the light you clicked. Shape changes preserve its channel layout and running effects. Changing a channel layout removes unsupported effect layers from that light and its scenes. Use **Save** to keep edits in this browser, or **Export** for a separate backup.
 
-**Pinspot bars:** Choose **Fixture shape → Pinspot bar · 6 heads** when adding or changing a light, or from the selected light’s right panel. This horizontal style is inspired by fixtures such as the Chauvet DJ Pinspot Bar, with six spotlight heads. It is a visual style; it does not install a manufacturer DMX profile or separate controls for each head. Save retains the chosen style.
+**Pinspot bars:** Choose **Fixture shape → Pinspot bar · 6 heads** when adding or changing a light, or from the selected light’s right panel. This horizontal style is inspired by fixtures such as the Chauvet DJ Pinspot Bar, with six spotlight heads. The preview draws six parallel narrow beams from the six lenses, each with its own landing spot. Multi-lens washes and PARs blend broader, softer beams from their individual lenses. These are illustrative optics using shared fixture controls; they do not install a manufacturer DMX profile or separate controls for each head. Save retains the chosen style.
 
 ## Mount and aim lights
 

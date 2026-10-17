@@ -1014,6 +1014,20 @@ function stageLightGeometry(f,look,{width:W,height:H}=LIVE_STAGE){
  const cone=`M${origin.x+nx*source},${origin.y+ny*source} L${target.x+nx*edge},${target.y+ny*edge} Q${target.x+dx/length*radius*.25},${target.y+dy/length*radius*.25} ${target.x-nx*edge},${target.y-ny*edge} L${origin.x-nx*source},${origin.y-ny*source} Z`;
  return{origin,target,radius,cone,angle:Math.atan2(dy,dx)*180/Math.PI-90};
 }
+// Match emitter positions to the SVG artwork, including its aspect-fit and housing transform.
+function fixtureEmitterGeometry(f,look,bounds,g=stageLightGeometry(f,look)){
+ const appearance=fixtureAppearance(f),spec={
+  'pinspot-bar':{box:[104,44],points:[12,28,44,60,76,92].map(x=>[x,27]),lens:4.1,narrow:true},
+  wash:{box:[52,44],points:[14,26,38].flatMap(x=>[14,26].map(y=>[x,y])),lens:3},
+  par:{box:[48,50],points:[[24,26],[24,17],[32,21.5],[32,30.5],[24,35],[16,30.5],[16,21.5]],lens:2.4}
+ }[appearance];if(!spec)return[];
+ const [w,h]=fixtureFootprint(f),scale=Math.min(w/spec.box[0],h/spec.box[1]),a=(f.profile==='Moving head · preview'?0:f.forward||0)*Math.PI/180,c=Math.cos(a),s=Math.sin(a),flip=f.mounting==='upside-down'?-1:1,sx=LIVE_STAGE.width/Math.max(1,bounds.width),sy=LIVE_STAGE.height/Math.max(1,bounds.height),dx=g.target.x-g.origin.x,dy=g.target.y-g.origin.y,length=Math.max(1,Math.hypot(dx,dy));
+ return spec.points.map(([x,y])=>{
+  const px=(x-spec.box[0]/2)*scale,py=(y-spec.box[1]/2)*scale*flip,origin={x:g.origin.x+(px*c+py*s)*sx,y:g.origin.y+(-px*s+py*c)*sy};
+  const sourceRadius=spec.lens*scale*Math.sqrt(sx*sy),radius=spec.narrow?Math.max(sourceRadius,length*.018+2):Math.max(sourceRadius*2,length*.19);
+  return{origin,target:{x:origin.x+dx,y:origin.y+dy},length,ux:dx/length,uy:dy/length,sourceRadius,radius,narrow:!!spec.narrow};
+ });
+}
 function svgNode(tag,attrs={}){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,String(v));return e}
 const liveSvg=svgNode('svg',{id:'live-stage-lights',viewBox:'0 0 1000 650',preserveAspectRatio:'none','aria-hidden':'true'}),liveDefs=svgNode('defs'),liveFixtures=svgNode('g'),livePaths=svgNode('g');liveSvg.append(liveDefs,liveFixtures,livePaths);$('stage').append(liveSvg);
 const liveLightNodes=new Map();let showMotionPaths=true,liveStructure='',liveFrames=0;
@@ -1021,15 +1035,17 @@ function makeLiveLight(f,index){
  const token='luma-live-'+index,beamGradient=svgNode('linearGradient',{id:token+'-beam',gradientUnits:'userSpaceOnUse'}),beamStart=svgNode('stop',{offset:'0%','stop-opacity':'.7'}),beamEnd=svgNode('stop',{offset:'100%','stop-opacity':'.05'});beamGradient.append(beamStart,beamEnd);
  const spotGradient=svgNode('radialGradient',{id:token+'-spot'}),spotCenter=svgNode('stop',{offset:'0%','stop-opacity':'.9'}),spotMiddle=svgNode('stop',{offset:'40%','stop-opacity':'.46'}),spotEdge=svgNode('stop',{offset:'100%','stop-opacity':'0'});spotGradient.append(spotCenter,spotMiddle,spotEdge);liveDefs.append(beamGradient,spotGradient);
  const group=svgNode('g',{'data-light-output':f.id}),cone=svgNode('path',{fill:'url(#'+token+'-beam)'}),core=svgNode('path',{fill:'none','stroke-width':'1.2','stroke-opacity':'.18'}),spot=svgNode('ellipse',{fill:'url(#'+token+'-spot)'}),prisms=[-1,1].map(()=>svgNode('ellipse',{fill:'url(#'+token+'-spot)'})),gobo=svgNode('ellipse',{fill:'none','stroke-width':'2'}),source=svgNode('ellipse',{rx:16,ry:16,fill:'url(#'+token+'-spot)'}),path=svgNode('path',{'data-motion-path':f.id,fill:'none',stroke:'#7daeff','stroke-width':'1','stroke-dasharray':'5 7','stroke-opacity':'.38'}),aim=svgNode('circle',{r:4,fill:'none',stroke:'#b8d6ff','stroke-width':'1.2','stroke-opacity':'.8'});group.append(cone,core,spot,...prisms,gobo,source);liveFixtures.append(group);livePaths.append(path,aim);
- return{group,cone,core,spot,prisms,gobo,source,path,aim,beamGradient,beamStart,beamEnd,spotCenter,spotMiddle,spotEdge,pathSignature:''};
+ const softGradient=svgNode('linearGradient',{id:token+'-soft',x1:0,y1:0,x2:1,y2:0}),softStops=[];for(const[offset,opacity]of [[0,0],[.18,.35],[.5,1],[.82,.35],[1,0]]){const stop=svgNode('stop',{offset:offset*100+'%','stop-opacity':opacity});softStops.push(stop);softGradient.append(stop)}liveDefs.append(softGradient);
+ const emitters=fixtureEmitterGeometry(f,LumaPreviewEngine.defaults,{width:1000,height:650}).map((_,i)=>{const beam=svgNode('path',{fill:'url(#'+token+'-soft)',mask:'url(#emitter-fade)'}),pool=svgNode('ellipse',{fill:'url(#'+token+'-spot)'}),glow=svgNode('ellipse',{fill:'url(#'+token+'-spot)'}),emitter=svgNode('g',{'data-emitter':i});emitter.append(beam,pool,glow);group.append(emitter);return{group:emitter,beam,pool,glow}});
+ return{group,cone,core,spot,prisms,gobo,source,path,aim,emitters,softStops,beamGradient,beamStart,beamEnd,spotCenter,spotMiddle,spotEdge,pathSignature:''};
 }
 function renderLiveStage(){
  if(view!=='stage')return;
- const stageBounds=$('stage').getBoundingClientRect(),fixtures=state.project.fixtures,signature=fixtures.map(f=>f.id+':'+fixtureAppearance(f)).join('|');if(signature!==liveStructure){liveStructure=signature;liveDefs.replaceChildren();liveFixtures.replaceChildren();livePaths.replaceChildren();liveLightNodes.clear();fixtures.forEach((f,i)=>liveLightNodes.set(f.id,makeLiveLight(f,i)))}
+ const stageBounds=$('stage').getBoundingClientRect(),fixtures=state.project.fixtures,signature=fixtures.map(f=>f.id+':'+fixtureAppearance(f)).join('|');if(signature!==liveStructure){liveStructure=signature;liveDefs.replaceChildren();const fade=svgNode('linearGradient',{id:'emitter-falloff',x1:0,y1:0,x2:0,y2:1});for(const[offset,opacity]of [[0,.45],[.12,1],[.65,.6],[1,0]])fade.append(svgNode('stop',{offset:offset*100+'%','stop-color':'white','stop-opacity':opacity}));const mask=svgNode('mask',{id:'emitter-fade',maskContentUnits:'objectBoundingBox',x:0,y:0,width:1,height:1});mask.append(svgNode('rect',{x:0,y:0,width:1,height:1,fill:'url(#emitter-falloff)'}));liveDefs.append(fade,mask);liveFixtures.replaceChildren();livePaths.replaceChildren();liveLightNodes.clear();fixtures.forEach((f,i)=>liveLightNodes.set(f.id,makeLiveLight(f,i)))}
  for(const f of fixtures){
-  const n=liveLightNodes.get(f.id),look=state.looks[f.id],v=visual(f),position=gesture?.kind==='move'?gesture.positions?.find(p=>p.id===f.id):null,g=stageLightGeometry({...f,...position,...(stageAimGesture?.id===f.id&&stageAimGesture.kind==='forward'?{forward:stageAimGesture.forward}:{})},stageAimGesture?.id===f.id&&stageAimGesture.kind==='aim'?{...look,...stageAimGesture.patch}:look),power=fxClamp(v.power),isHead=moving(f),isSelected=selected.has(f.id);
+  const n=liveLightNodes.get(f.id),look=state.looks[f.id],v=visual(f),position=gesture?.kind==='move'?gesture.positions?.find(p=>p.id===f.id):null,displayFixture={...f,...position,...(stageAimGesture?.id===f.id&&stageAimGesture.kind==='forward'?{forward:stageAimGesture.forward}:{})},displayLook=stageAimGesture?.id===f.id&&stageAimGesture.kind==='aim'?{...look,...stageAimGesture.patch}:look,g=stageLightGeometry(displayFixture,displayLook),power=fxClamp(v.power),isHead=moving(f),isSelected=selected.has(f.id);
   n.group.setAttribute('opacity',power.toFixed(4));n.group.setAttribute('data-output',power.toFixed(4));n.group.setAttribute('data-target-x',g.target.x.toFixed(2));n.group.setAttribute('data-target-y',g.target.y.toFixed(2));
-  for(const stop of [n.beamStart,n.beamEnd,n.spotCenter,n.spotMiddle,n.spotEdge])stop.setAttribute('stop-color',v.color);
+  for(const stop of [n.beamStart,n.beamEnd,n.spotCenter,n.spotMiddle,n.spotEdge,...n.softStops])stop.setAttribute('stop-color',v.color);
   for(const[k,value]of Object.entries({x1:g.origin.x,y1:g.origin.y,x2:g.target.x,y2:g.target.y}))n.beamGradient.setAttribute(k,value);
   n.cone.setAttribute('d',g.cone);n.core.setAttribute('d',`M${g.origin.x},${g.origin.y}L${g.target.x},${g.target.y}`);n.core.setAttribute('stroke',v.color);
   const soften=isHead?1+look.frost*.65+(1-look.focus)*.22:1.2,rx=g.radius*soften,ry=rx*.42;
@@ -1040,6 +1056,17 @@ function renderLiveStage(){
   n.source.setAttribute('cx',g.origin.x);n.source.setAttribute('cy',g.origin.y);
   const isBar=fixtureAppearance(f)==='led-bar';n.cone.setAttribute('display',isBar?'none':'');n.core.setAttribute('display',isBar?'none':'');
   if(isBar){const[barWidth,barHeight]=fixtureFootprint(f),sx=LIVE_STAGE.width/Math.max(1,stageBounds.width),sy=LIVE_STAGE.height/Math.max(1,stageBounds.height);n.source.setAttribute('rx',barWidth*sx*1.3);n.source.setAttribute('ry',barHeight*sy*.67);n.spot.setAttribute('cx',g.origin.x);n.spot.setAttribute('cy',g.origin.y+barHeight*sy*.49);n.spot.setAttribute('rx',barWidth*sx*2.5);n.spot.setAttribute('ry',18*sy)}else{n.source.setAttribute('rx',16);n.source.setAttribute('ry',16)}
+  if(n.emitters.length){
+   // Multi-lens fixtures emit from every lens, never from a synthetic center cone.
+   for(const legacy of [n.cone,n.core,n.spot,n.source,n.gobo,...n.prisms])legacy.setAttribute('display','none');
+   const beams=fixtureEmitterGeometry(displayFixture,displayLook,stageBounds,g);
+   beams.forEach((b,i)=>{const e=n.emitters[i],r=b.radius,q=b.sourceRadius,l=b.length;
+    e.group.setAttribute('data-source-x',b.origin.x);e.group.setAttribute('data-source-y',b.origin.y);e.group.setAttribute('data-target-x',b.target.x);e.group.setAttribute('data-target-y',b.target.y);
+    e.beam.setAttribute('d',`M${-q},0 L${-r},${l} Q0,${l+r*.15} ${r},${l} L${q},0 Z`);e.beam.setAttribute('transform',`matrix(${b.uy} ${-b.ux} ${b.ux} ${b.uy} ${b.origin.x} ${b.origin.y})`);e.beam.setAttribute('opacity',b.narrow?.25:.12);
+    for(const[k,value]of Object.entries({cx:b.target.x,cy:b.target.y,rx:r,ry:r*.48,opacity:b.narrow?.95:.24}))e.pool.setAttribute(k,value);
+    for(const[k,value]of Object.entries({cx:b.origin.x,cy:b.origin.y,rx:q*2,ry:q*1.4,opacity:b.narrow?.6:.25}))e.glow.setAttribute(k,value);
+   });
+  }
   if(isHead){const icon=fixtureElements.get(f.id);icon?.style.setProperty('--pan-angle',g.angle+'deg');icon?.style.setProperty('--tilt-scale',(.68+look.tilt*.32).toFixed(3))}
   const config=state.project.effects[f.id]?.motion,pathVisible=showMotionPaths&&isSelected&&isHead&&!!config;
   n.path.setAttribute('display',pathVisible?'':'none');n.aim.setAttribute('display',showMotionPaths&&isSelected&&isHead?'':'none');n.aim.setAttribute('cx',g.target.x);n.aim.setAttribute('cy',g.target.y);

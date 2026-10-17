@@ -213,5 +213,25 @@ vm.runInContext(`
  console.log('PASS: explicit Save, project/scene/aim round trips, unsaved edits remain separate, corrupt-data preservation, storage failure without false success, keyboard shortcut, dialog guard and SVG forward arrow.');
 }
 `,ctx,{timeout:5000});
+vm.runInContext(`
+{
+ const saved=localPreview.copy(localPreview.project);act({op:'fx_stop',seconds:0});setTool('select');switchTab('stage');
+ for(const [appearance,count]of [['pinspot-bar',6],['wash',6],['par',7]]){
+  const frame=JSON.stringify(state.frame);act({op:'fixture',ids:['f1'],patch:{appearance}},true);assert.equal(JSON.stringify(state.frame),frame);
+  const n=liveLightNodes.get('f1');assert.equal(n.emitters.length,count);assert.equal(n.cone.getAttribute('display'),'none');assert.equal(n.spot.getAttribute('display'),'none');assert.equal(n.source.getAttribute('display'),'none');
+  assert.equal(new Set(n.emitters.map(e=>e.group.getAttribute('data-source-x')+','+e.group.getAttribute('data-source-y'))).size,count);
+  assert.equal(new Set(n.emitters.map(e=>e.group.getAttribute('data-target-x')+','+e.group.getAttribute('data-target-y'))).size,count);
+  const f=state.project.fixtures.find(f=>f.id==='f1'),rect={width:800,height:430},look=state.looks.f1,beams=fixtureEmitterGeometry(f,look,rect),g=stageLightGeometry(f,look);
+  for(const b of beams){assert(Math.abs((b.target.x-b.origin.x)-(g.target.x-g.origin.x))<1e-8);assert(Math.abs((b.target.y-b.origin.y)-(g.target.y-g.origin.y))<1e-8);assert(b.radius>b.sourceRadius)}
+  if(appearance==='pinspot-bar')assert(beams.every(b=>b.radius<20));else assert(beams.every(b=>b.radius>40));
+  act({op:'fixture',ids:['f1'],patch:{r:1,g:0,b:0,level:.7}});assert(liveLightNodes.get('f1').softStops.every(stop=>stop.getAttribute('stop-color')===visual(state.project.fixtures.find(f=>f.id==='f1')).color));
+  act({op:'fixture',ids:['f1'],patch:{level:0}});assert.equal(liveLightNodes.get('f1').group.getAttribute('opacity'),'0.0000');act({op:'fixture',ids:['f1'],patch:{level:.7}});
+ }
+ act({op:'fixture',ids:['f1'],patch:{appearance:'fresnel'}},true);assert.equal(liveLightNodes.get('f1').emitters.length,0);assert.equal(liveLightNodes.get('f1').cone.getAttribute('display'),'');
+ act({op:'fixture',ids:['f1'],patch:{appearance:'led-bar'}},true);assert.equal(liveLightNodes.get('f1').emitters.length,0);assert.equal(liveLightNodes.get('f1').cone.getAttribute('display'),'none');
+ act({op:'import',project:saved},true);
+ console.log('PASS: individual lens origins/parallel targets, pinspot versus wash spread, no duplicate center optics, shared live color/brightness, appearance transitions and unchanged DMX output.');
+}
+`,ctx,{timeout:5000});
 ctx.URL={createObjectURL(){return'blob:test'},revokeObjectURL(){}};
 vm.runInContext(`importPhoto({name:'stage.jpg',type:'image/jpeg',size:3}).then(()=>{assert.equal(state.project.space.mode,'photo');assert.equal(tool,'arrange');assert.equal($('space-photo').hidden,false);console.log('PASS: photo decoding/canvas import workflow with a stub image decoder.');})`,ctx);
