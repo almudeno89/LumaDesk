@@ -6,7 +6,9 @@ Prepared October 13, 2026 from the latest `Luma-Desk-Preview.html` (saved versio
 
 Pablo is building a clean, approachable church lighting application. He asked for an Apple-inspired interface and wants to see the stage respond live while adjusting controls. Keep the current design; he has repeatedly approved it and requested specific additions.
 
-The latest completed request moved Effects studio from below the stage to its own left column because the right-hand inspector obscured the previous layout while scrolling. The left panel now has independent scrolling, a fixed header, and an always-visible action footer. The center holds the stage and scenes, with color and movement controls on the right. Responsive layouts use fewer columns at narrower widths.
+On October 17, 2026, Pablo explicitly approved the version with the per-light iOS-style context menu as the official Luma Desk baseline. The approved application is commit [`2352669`](https://github.com/almudeno89/LumaDesk/commit/2352669b597f43b0b9e81a2a5647ce090b4c91f4), published at https://almudeno89.github.io/LumaDesk/. Future updates should build on this version and preserve its approved menu, layout, and interactions unless Pablo requests a change. This approval establishes the product baseline; the hardware and persistence work listed below remains incomplete.
+
+An earlier completed request moved Effects studio from below the stage to its own left column because the right-hand inspector obscured the previous layout while scrolling. The left panel now has independent scrolling, a fixed header, and an always-visible action footer. The center holds the stage and scenes, with color and movement controls on the right. Responsive layouts use fewer columns at narrower widths.
 
 ## Implemented in the current preview
 
