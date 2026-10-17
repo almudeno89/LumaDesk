@@ -10,6 +10,7 @@ Read `docs/HANDOFF.md` before changing the application. `index.html` is the curr
 - Preserve compatibility with existing project JSON where practical. Saving must retain fixture appearance, scene looks, effects, and stage guides.
 - Do not use the older Python interface as a replacement for the latest UI.
 - No dependencies are currently required. Add tooling only when it helps the requested change.
+- For physical-lighting work, read `docs/HARDWARE-COMPATIBILITY.md` for the owner's equipment and connection choices. Own technical driver/protocol research; do not ask the owner to determine compatibility or repeat information already recorded. Keep verified support, research candidates, and untested hardware behavior distinct.
 
 ## Cloud development and online change links
 
