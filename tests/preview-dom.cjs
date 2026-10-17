@@ -177,5 +177,26 @@ vm.runInContext(`
 }
 `,ctx,{timeout:7000});
 
+vm.runInContext(`
+{
+ const project=localPreview.copy(localPreview.project);act({op:'import',project:{...project,effects:{}}},true);switchTab('stage');setTool('select');setSelection(['f9']);renderLiveStage();
+ const f=state.project.fixtures.find(f=>f.id==='f9');
+ for(const mounting of ['normal','upside-down'])for(const forward of [0,37,90,180,279,360])for(const x of [0,200,500,1000])for(const y of [0,150,650]){
+  const fixture={...f,mounting,forward},look=stageAimLook(fixture,{x,y}),target=stageLightGeometry(fixture,{...state.looks.f9,...look}).target;
+  assert(Math.abs(target.x-x)<1e-6);assert(Math.abs(target.y-y)<1e-6);assert(look.pan>=0&&look.pan<=1&&look.tilt>=0&&look.tilt<=1);
+ }
+ $('selected-mounting').value='upside-down';$('selected-mounting').dispatch('change');$('selected-forward').value='90';$('selected-forward').dispatch('change');assert.equal(state.project.fixtures.find(f=>f.id==='f9').mounting,'upside-down');assert.equal(state.project.fixtures.find(f=>f.id==='f9').forward,90);
+ let h=aimHandles.get('f9').forward;h.dispatch('pointerdown');h.dispatch('pointermove',{clientX:500,clientY:100});assert(stageAimGesture.changed);assert.equal(state.project.fixtures.find(f=>f.id==='f9').forward,90);h.dispatch('pointercancel');assert.equal(stageAimGesture,null);assert.equal(state.project.fixtures.find(f=>f.id==='f9').forward,90);
+ h.dispatch('keydown',{key:'ArrowRight'});assert.equal(state.project.fixtures.find(f=>f.id==='f9').forward,95);
+ $('dock-pattern').value='circle';$('dock-pattern').dispatch('change');assert(state.project.effects.f9.motion);$('dock-color-pattern').value='rainbow';$('dock-color-pattern').dispatch('change');
+ h=aimHandles.get('f9').aim;h.dispatch('pointerdown');h.dispatch('pointermove',{clientX:740,clientY:444});assert.equal(gesture,null);h.dispatch('pointerup');assert.equal(stageAimGesture,null);assert.equal(state.project.effects.f9.motion,undefined);assert.equal(state.project.effects.f9.color.pattern,'rainbow');assert.equal($('dock-pattern').value,'none');assert.equal($('dock-play').disabled,true);
+ let point=stageLightGeometry(state.project.fixtures.find(f=>f.id==='f9'),state.looks.f9).target;assert(Math.abs(point.x-800)<1e-6);assert(Math.abs(point.y-520)<1e-6);
+ h.dispatch('pointerdown');h.dispatch('pointermove',{clientX:200,clientY:150});setTool('space');assert.equal(stageAimGesture,null);renderLiveStage();assert(h.hidden);setTool('select');
+ $('dock-pattern').value='sweep';$('dock-pattern').dispatch('change');$('dock-pattern').value='none';$('dock-pattern').dispatch('change');assert.equal(state.project.effects.f9.motion,undefined);assert.equal(state.project.effects.f9.color.pattern,'rainbow');
+ contextOpen=true;syncPopover();const header=$('popover-drag');header.dispatch('pointerdown');header.dispatch('pointermove',{clientX:450,clientY:300});header.dispatch('pointerup');assert(popoverPosition);const left=$('fixture-popover').style.left;syncPopover();assert.equal($('fixture-popover').style.left,left);header.dispatch('dblclick');assert.equal(popoverPosition,null);header.dispatch('pointerdown');header.dispatch('pointermove',{clientX:300,clientY:350});header.dispatch('pointercancel');assert.equal(popoverPosition,null);
+ act({op:'import',project},true);setSelection([]);contextOpen=false;syncPopover();
+ console.log('PASS: full-stage aim inverse at all edges, rotation and flipped mounting; orientation controls, keyboard/drag/cancel targeting, tool changes, static motion selection, preserved color and persistent popup positioning.');
+}
+`,ctx,{timeout:5000});
 ctx.URL={createObjectURL(){return'blob:test'},revokeObjectURL(){}};
 vm.runInContext(`importPhoto({name:'stage.jpg',type:'image/jpeg',size:3}).then(()=>{assert.equal(state.project.space.mode,'photo');assert.equal(tool,'arrange');assert.equal($('space-photo').hidden,false);console.log('PASS: photo decoding/canvas import workflow with a stub image decoder.');})`,ctx);

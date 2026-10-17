@@ -10,6 +10,15 @@ On October 17, 2026, Pablo explicitly approved the version with the per-light iO
 
 An earlier completed request moved Effects studio from below the stage to its own left column because the right-hand inspector obscured the previous layout while scrolling. The left panel now has independent scrolling, a fixed header, and an always-visible action footer. The center holds the stage and scenes, with color and movement controls on the right. Responsive layouts use fewer columns at narrower widths.
 
+## Fixture mounting and direct aiming update · October 17, 2026
+
+- All fixtures retain validated `mounting` (`normal` / `upside-down`) and `forward` (0–360°) metadata. Missing legacy values default to normal/0°. Inspector multi-edit and the shared Add/Change light form expose these fields. Duplication and JSON export/import preserve them; scene looks continue to store normalized channel values.
+- Selected lights show a draggable forward arrow. Selected moving heads also show a draggable beam target. Pointer capture isolates these gestures from marquee/arrange; changes preview until release, and Escape, pointer cancel, or switching tools discards a draft. Keyboard arrows adjust direction/target; Shift uses larger increments. Handles hide in Space mode and while arranging fixtures. Forward handles move farther from the fixture if they would overlap its beam target.
+- `stageLightGeometry` now maps pan/tilt across the full stage. `rotateStagePoint` rotates rays around the fixture while preserving their fractional distance to the stage boundary, so its inverse `stageAimLook` can reach every edge/corner even with rotated or upside-down fixtures. Upside-down mounting mirrors the pan mapping and flips the housing; forward rotates the preview. Existing channel values remain unchanged, although older scene previews use this new full-stage mapping. This is an illustrative 2D map, not physical calibration; optional dimensions/heights still do not determine real optical reach.
+- The engine `aim` operation validates all IDs/channels before applying, holds evaluated pan/tilt, removes only selected motion layers and release runs, and overrides only those channels in an active scene fade. Color, brightness, and other fixtures continue. Manual pad/slider/target changes use this operation, as do Movement → None / Static and Stop. Saving a scene captures the held aim without a motion layer.
+- The fixture popup heading supports pointer dragging, keyboard arrows, Escape cancellation, and double-click reset. Its position persists for the page session and is clamped on resizing; it is UI state, not project data.
+- Validation includes engine atomicity, fade/layer preservation, legacy metadata and round trips; DOM events and geometric inverse coverage across flips, rotations and stage edges; actual Chromium mouse/keyboard, export and responsive layout checks. Hardware remains untested.
+
 ## Implemented in the current preview
 
 - Select one fixture, add to selection, or drag a marquee across multiple fixtures. Arrange mode moves selected groups together; marquee hit testing includes the full height of LED bars.

@@ -44,6 +44,16 @@ Right-click any light on the stage or in the left light list to open its frosted
 
 Actions target the light you clicked. Shape changes preserve its channel layout and running effects. Changing a channel layout removes unsupported effect layers from that light and its scenes. Use **Export** to keep project edits between visits.
 
+## Mount and aim lights
+
+Select a light and use **Mounting → Normal / Upside down** in the right inspector. Set **Forward direction** with a degree value, or drag its blue arrow around the light. The same settings are available under **Change light**. Zero degrees points toward the bottom of the stage; 90° points right. Settings apply to the selected lights and are retained by Export/Open and duplication.
+
+For a moving head, drag the **⊕ target** at the beam’s landing point anywhere on the stage. This holds the new aim and stops that head’s motion pattern while leaving color and brightness effects running. Choose **Movement → None / Static** or **Stop** to hold the current aim. Sliders and the aiming pad also take manual control. Use Escape to cancel a stage drag; focused arrows and targets support keyboard arrow keys, with Shift for larger steps.
+
+Drag the heading of **More fixture controls** to move its popup. It stays where you place it during the session, stays inside the viewport, and supports arrow keys when its heading is focused. Double-click the heading to return it beside the light.
+
+These are stage-preview controls. The full-stage aiming map, forward direction, and mounting display are illustrative; they do not calibrate real fixture pan/tilt ranges or enable physical hardware output. Existing scene channel values stay intact, but their beam positions in the preview now use the full stage. Export your project to retain the light settings and static aims.
+
 ## Verify
 
 ```sh

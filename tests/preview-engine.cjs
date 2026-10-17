@@ -100,5 +100,22 @@ const st=fresh();st.act({op:'fixture',ids:['f9'],patch:{strobe:.1}},0);assert(st
  assert.throws(()=>resizeSpaceObject(base,'bad',1,1,rect));assert.throws(()=>resizeSpaceObject(base,'se',NaN,1,rect));assert.throws(()=>resizeSpaceObject(base,'se',1,1,{width:0,height:430}));
  console.log('PASS: all four resize corners at multiple rotations, fixed opposite anchors, proportional resizing, snapping, crossing and size/center limits, invalid geometry, saved sizes and unchanged light output.');
 }
+// Physical metadata and manual aim are independent from color, dimmer and scene timing.
+{
+ const e=fresh(),legacy=e.copy(e.project);for(const f of legacy.fixtures){delete f.forward;delete f.mounting}
+ const migrated=new LumaPreviewEngine(legacy);assert.equal(migrated.project.fixtures[0].mounting,'normal');assert.equal(migrated.project.fixtures[0].forward,0);
+ e.act({op:'edit_fixture',id:'f9',patch:{mounting:'upside-down',forward:137}},0);
+ const exported=new LumaPreviewEngine(e.copy(e.project));assert.equal(exported.project.fixtures.find(f=>f.id==='f9').forward,137);assert.equal(exported.project.fixtures.find(f=>f.id==='f9').mounting,'upside-down');
+ e.act({op:'duplicate_fixture',id:'f9'},0);assert.equal(e.project.fixtures.at(-1).forward,137);assert.equal(e.project.fixtures.at(-1).mounting,'upside-down');
+ for(const patch of [{forward:NaN},{forward:-1},{forward:361},{mounting:'sideways'}]){const before=JSON.stringify(e.project);assert.throws(()=>e.act({op:'edit_fixture',id:'f9',patch},0));assert.equal(JSON.stringify(e.project),before)}
+ apply(e,'motion','circle',['f9'],{width:.6,height:.4},0);apply(e,'color','rainbow',['f9'],{},0);apply(e,'dimmer','breathe',['f1','f9'],{},0);
+ const before=e.snapshot(1),colorRun=e.fxRuns.get('f9:color'),dimmerRun=e.fxRuns.get('f9:dimmer');e.act({op:'aim',ids:['f9']},1);const held=e.snapshot(2);
+ close(held.looks.f9.pan,before.looks.f9.pan);close(held.looks.f9.tilt,before.looks.f9.tilt);assert.equal(e.project.effects.f9.motion,undefined);assert.equal(e.fxRuns.has('f9:motion'),false);assert.equal(e.fxRuns.get('f9:color'),colorRun);assert.equal(e.fxRuns.get('f9:dimmer'),dimmerRun);assert.notEqual(held.looks.f9.r,before.looks.f9.r);
+ apply(e,'motion','circle',['f9'],{},3);const pan=e.snapshot(4).looks.f9.pan;e.act({op:'aim',ids:['f9'],patch:{tilt:.8}},4);close(e.snapshot(5).looks.f9.pan,pan);close(e.snapshot(5).looks.f9.tilt,.8);
+ const original=JSON.stringify(e.project);for(const body of [{ids:['f1']},{ids:['f9','unknown']},{ids:['f9'],patch:{pan:2}},{ids:['f9'],patch:{level:.5}}])assert.throws(()=>e.act({op:'aim',...body},5));assert.equal(JSON.stringify(e.project),original);
+ e.act({op:'cue',id:'luma-living-light-demo'},10);const fading=e.fade,other=e.snapshot(10.5).looks.f1;e.act({op:'aim',ids:['f9'],patch:{pan:.12,tilt:.89}},10.5);assert.equal(e.fade,fading);assert.deepEqual(e.snapshot(10.5).looks.f1,other);close(e.snapshot(11).looks.f9.pan,.12);close(e.snapshot(20).looks.f9.tilt,.89);
+ e.act({op:'save_scene',name:'Held target',fade:0},20);e.act({op:'aim',ids:['f9'],patch:{pan:.6,tilt:.4}},21);e.act({op:'cue',id:e.project.scenes.at(-1).id},22);close(e.snapshot(22).looks.f9.pan,.12);close(e.snapshot(22).looks.f9.tilt,.89);assert.equal(e.project.effects.f9.motion,undefined);
+ console.log('PASS: orientation defaults/validation/export/duplicate; manual aim holds evaluated movement, preserves color/dimmer and other scene fades, validates atomically and saves static scene targets.');
+}
 console.log('PASS: continuous brightness/color/motion, cycle bounds and timing, fade-in/out, deterministic flicker, group offsets, movement filtering and DMX values, pause/resume with blackout, tempo continuity, animated scene recall and export, invalid-data atomicity, live strobe and stop-all.');
 `,{console,assert,performance,Set,Map,Math},{timeout:6000});
