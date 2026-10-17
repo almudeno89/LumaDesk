@@ -119,6 +119,18 @@ dialog{background:linear-gradient(145deg,#33353e,#25272f);color:#f5f5f7;border:1
 @media(max-width:900px){.workspace{grid-template-columns:224px minmax(0,1fr);grid-template-areas:"effects stage" "effects inspector" "effects scenes";grid-template-rows:auto auto auto;gap:12px;--panel-height:calc(100dvh - 226px)}.workspace>.inspector{position:static;max-height:none;overflow:visible}.workspace .stage{height:350px}.workspace .dock-color .color-wheel{width:120px;height:120px}.workspace .dock-pad{height:120px}.workspace .dock-layout-color .dock-color .color-wheel{width:174px;height:174px}.workspace .dock-layout-movement .dock-pad{height:165px}}
 @media(max-width:620px){.workspace{grid-template-columns:minmax(0,1fr);grid-template-areas:"stage" "effects" "inspector" "scenes";grid-template-rows:auto auto auto auto}.workspace>.effects-studio{position:static;height:min(680px,80dvh);max-height:none}.workspace .stage{height:340px}.effects-studio .fx-presets{grid-template-columns:repeat(4,minmax(0,1fr))}.effects-studio .fx-preset{flex-direction:column;align-items:center}.effects-studio .fx-range-pair{grid-template-columns:1fr 1fr}.effects-studio .fx-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.effects-studio #fx-fade-field{grid-column:auto}.workspace .stage-live-toolbar{flex-wrap:wrap}.workspace>.inspector{overflow:hidden}.workspace .scene-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* iOS-inspired per-light menu: grouped actions over a softly frosted surface. */
+.light-menu{position:fixed;z-index:40;width:264px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;padding:5px;border:1px solid #ffffff26;border-radius:18px;color:#f5f5f9;background:linear-gradient(135deg,#353640eb,#252630f5);-webkit-backdrop-filter:blur(28px) saturate(150%);backdrop-filter:blur(28px) saturate(150%);box-shadow:0 20px 60px #0008,0 4px 12px #0004,inset 0 1px #ffffff0c;animation:light-menu-in .12s ease-out;transform-origin:top left}
+.light-menu-heading{display:flex;align-items:center;gap:11px;padding:11px 10px 13px;min-width:0}
+.light-menu-art{display:flex;align-items:center;justify-content:center;flex:none;width:34px;height:40px;color:#c7bdff;--light:#b9a4ff;--power:.8}
+.light-menu-art svg{width:100%;height:100%}.light-menu-heading>div{min-width:0}.light-menu-name{font-size:13px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.light-menu-detail{font-size:10px;color:#a5a5b3;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.light-menu-group{padding:4px 0;border-top:1px solid #ffffff13}
+.light-menu-item{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;min-height:38px;padding:9px 11px;border:0;border-radius:9px;background:transparent;color:inherit;text-align:left;font-size:13px;font-weight:450;cursor:pointer}
+.light-menu-item .icon{width:18px;height:18px;opacity:.85;flex:none}.light-menu-item:hover:not(:disabled),.light-menu-item:focus-visible{background:#ffffff15;outline:none}.light-menu-item:focus-visible{box-shadow:inset 0 0 0 1px #a3baff88}.light-menu-item:active:not(:disabled){background:#ffffff23}.light-menu-item.danger{color:#ff747a}.light-menu-item:disabled{opacity:.35;cursor:default}
+.form-error{color:#ff9599!important;margin-top:14px!important}#remove-light-dialog{max-width:380px}#remove-light-dialog h2{overflow-wrap:anywhere}.button.danger{background:#d93c49;border-color:#ec5260;color:white}
+@keyframes light-menu-in{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.light-menu{animation:none}}
 </style>
 </head>
 <body>
@@ -201,7 +213,7 @@ dialog{background:linear-gradient(145deg,#33353e,#25272f);color:#f5f5f7;border:1
  </main>
 </div>
 <dialog id="scene-dialog"><form id="scene-form"><h2>Save this look.</h2><p>Capture every light as a scene you can return to.</p><label for="scene-name">Name</label><input id="scene-name" maxlength="80" placeholder="Evening worship" required><label for="scene-fade">Transition · seconds</label><input id="scene-fade" type="number" min="0" max="30" step=".1" value="1.5" required><div class="dialog-actions"><button class="button" type="button" data-close="scene-dialog">Cancel</button><button class="button blue" type="submit">Save scene</button></div></form></dialog>
-<dialog id="fixture-dialog"><form id="fixture-form"><h2>Add a light.</h2><p>Choose its channel layout and starting address.</p><label for="fixture-name">Name</label><input id="fixture-name" maxlength="80" placeholder="Back wash" required><label for="fixture-appearance">Fixture shape</label><select id="fixture-appearance"><option value="auto">Automatic from fixture type</option><option value="par">PAR can</option><option value="wash">LED wash</option><option value="fresnel">Fresnel / front light</option><option value="moving-head">Moving head</option><option value="led-bar">Vertical LED bar</option></select><label for="fixture-zone">Group</label><input id="fixture-zone" maxlength="80" value="Stage wash" required><div class="form-pair"><div><label for="fixture-profile">Channel layout</label><select id="fixture-profile"><option>RGBW</option><option>RGB</option><option>Dimmer + RGB</option><option>Dimmer</option><option>Moving head · preview</option></select></div><div><label for="fixture-address">Address</label><input id="fixture-address" type="number" min="1" max="512" step="1" value="33" required></div></div><p id="profile-help" style="margin-top:12px">Match this generic channel order to your fixture’s manual.</p><div class="dialog-actions"><button class="button" type="button" data-close="fixture-dialog">Cancel</button><button class="button blue" type="submit">Add light</button></div></form></dialog>
+<dialog id="fixture-dialog" aria-labelledby="fixture-dialog-title" aria-describedby="fixture-dialog-description"><form id="fixture-form"><h2 id="fixture-dialog-title">Add a light.</h2><p id="fixture-dialog-description">Choose its channel layout and starting address.</p><label for="fixture-name">Name</label><input id="fixture-name" maxlength="80" placeholder="Back wash" required><label for="fixture-appearance">Fixture shape</label><select id="fixture-appearance"><option value="auto">Automatic from fixture type</option><option value="par">PAR can</option><option value="wash">LED wash</option><option value="fresnel">Fresnel / front light</option><option value="moving-head">Moving head</option><option value="led-bar">Vertical LED bar</option></select><label for="fixture-zone">Group</label><input id="fixture-zone" maxlength="80" value="Stage wash" required><div class="form-pair"><div><label for="fixture-profile">Channel layout</label><select id="fixture-profile"><option>RGBW</option><option>RGB</option><option>Dimmer + RGB</option><option>Dimmer</option><option>Moving head · preview</option></select></div><div><label for="fixture-address">Address</label><input id="fixture-address" type="number" min="1" max="512" step="1" value="33" required></div></div><p class="form-error" id="fixture-form-error" role="alert" hidden></p><p id="profile-help" style="margin-top:12px">Match this generic channel order to your fixture’s manual.</p><div class="dialog-actions"><button class="button" type="button" data-close="fixture-dialog">Cancel</button><button class="button blue" id="fixture-submit" type="submit">Add light</button></div></form></dialog>
 <input type="file" id="import-file" accept=".json,application/json" hidden><div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 <aside class="fixture-popover" id="fixture-popover" aria-label="Selected fixture controls" hidden>
  <div class="popover-heading"><div class="selection-icon"><span class="icon" data-icon="lights"></span></div><div><h2 id="popover-title">Light</h2><p id="popover-subtitle">Fixture controls</p></div><button class="clear-selection" id="close-popover" aria-label="Close fixture controls">×</button></div>
@@ -215,6 +227,14 @@ dialog{background:linear-gradient(145deg,#33353e,#25272f);color:#f5f5f7;border:1
 <dialog id="patch-dialog"><h2>A place for every light.</h2><p>Review consecutive addresses for this project's profiles. This changes the preview patch only. Set matching addresses and modes on your physical fixtures separately.</p><div class="table-scroll" style="max-height:300px"><table><thead><tr><th>LIGHT</th><th>CURRENT</th><th>PROPOSED</th></tr></thead><tbody id="patch-proposal"></tbody></table></div><div class="dialog-actions"><button class="button" data-close="patch-dialog">Cancel</button><button class="button blue" id="apply-patch">Apply patch</button></div></dialog>
 <input id="stage-photo-file" type="file" accept="image/jpeg,image/png,image/webp" hidden><input id="stage-camera-file" type="file" accept="image/*" capture="environment" hidden><input id="stage-scan-file" type="file" accept=".obj" hidden>
 
+<div class="light-menu" id="fixture-context-menu" role="menu" aria-labelledby="light-menu-name" hidden>
+ <div class="light-menu-heading" role="presentation"><span class="light-menu-art" id="light-menu-art" aria-hidden="true"></span><div><div class="light-menu-name" id="light-menu-name"></div><div class="light-menu-detail" id="light-menu-detail"></div></div></div>
+ <div class="light-menu-group" id="light-menu-edit" role="group" aria-label="Edit light"></div>
+ <div class="light-menu-group" id="light-menu-organize" role="group" aria-label="Organize light"></div>
+ <div class="light-menu-group" id="light-menu-playback" role="group" aria-label="Playback"></div>
+ <div class="light-menu-group" id="light-menu-remove" role="group" aria-label="Remove light"></div>
+</div>
+<dialog id="remove-light-dialog" aria-labelledby="remove-light-name" aria-describedby="remove-light-description"><h2 id="remove-light-name">Remove light?</h2><p id="remove-light-description">This removes the light from your stage and every saved scene. This cannot be undone.</p><p id="remove-light-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button class="button" type="button" id="cancel-remove-light" data-close="remove-light-dialog">Cancel</button><button class="button danger" type="button" id="confirm-remove-light">Remove light</button></div></dialog>
 <script>
 /* Browser-only lighting preview. This module performs no network or device I/O. */
 // Fixture appearance is independent of its DMX channel personality.
@@ -276,6 +296,54 @@ class LumaPreviewEngine {
     case 'fixture':{const chosen=new Set(body.ids);if(!chosen.size||[...chosen].some(id=>!this.project.fixtures.some(f=>f.id===id)))throw Error('Select a fixture');for(const [k,v]of Object.entries(body.patch)){if(!['x','y','appearance',...Object.keys(LumaPreviewEngine.defaults)].includes(k))throw Error('Unknown property');if(k==='appearance'){if(!Object.hasOwn(FIXTURE_APPEARANCES,v))throw Error('Unknown fixture shape')}else this.number(v,k==='x'?4:k==='y'?8:0,k==='x'?96:k==='y'?86:1)}const changesLook=Object.keys(body.patch).some(k=>Object.hasOwn(LumaPreviewEngine.defaults,k));if(Object.keys(body.patch).some(k=>['r','g','b','w'].includes(k))&&[...chosen].some(id=>this.project.effects[id]?.color))this.stopEffects({ids:[...chosen],kind:'color',seconds:0},now);if(changesLook)this.freeze(now);this.project.fixtures.filter(f=>chosen.has(f.id)).forEach(f=>Object.assign(f,body.patch));if(changesLook)this.active=null;break}
     case 'save_scene':if(this.project.scenes.length>=128)throw Error('Scene limit reached');this.project.scenes.push({id:id(),name:this.label(body.name),fade:this.number(body.fade,0,30),looks:this.copy(this.looks(now)),effects:this.copy(this.project.effects)});break;
     case 'add_fixture':{const p=this.copy(this.project),f={id:id(),name:body.name,zone:body.zone,profile:body.profile,appearance:body.appearance,address:body.address,x:50,y:45,...LumaPreviewEngine.defaults,level:0};p.fixtures.push(f);p.scenes.forEach(s=>s.looks[f.id]=this.look(f));this.project=this.validate(p);this.fade=null;this.active=null;break}
+    case 'edit_fixture':{
+      const p=this.copy(this.project),f=p.fixtures.find(f=>f.id===body.id);
+      if(!f)throw Error('This light no longer exists');
+      const oldProfile=f.profile,oldAddress=f.address;
+      for(const [key,value] of Object.entries(body.patch||{})){
+        if(!['name','zone','appearance','profile','address'].includes(key))throw Error('Unknown light setting');
+        f[key]=value;
+      }
+      const unsupported=oldProfile===f.profile?[]:[...(f.profile!=='Moving head · preview'?['motion']:[]),...(f.profile==='Dimmer'?['color']:[])];
+      for(const effects of [p.effects,...p.scenes.map(s=>s.effects)]){
+        for(const kind of unsupported)delete effects[f.id]?.[kind];
+        if(effects[f.id]&&!Object.keys(effects[f.id]).length)delete effects[f.id];
+      }
+      if(unsupported.includes('motion')){f.strobe=0;for(const s of p.scenes)s.looks[f.id].strobe=0}
+      this.project=this.validate(p);
+      for(const kind of unsupported)this.fxRuns.delete(f.id+':'+kind);
+      if(oldProfile!==f.profile||oldAddress!==f.address)this.active=null;
+      break;
+    }
+    case 'duplicate_fixture':{
+      const p=this.copy(this.project),source=p.fixtures.find(f=>f.id===body.id);
+      if(!source)throw Error('This light no longer exists');
+      if(p.fixtures.length>=128)throw Error('The project already has 128 lights');
+      const count=LumaPreviewEngine.channels[source.profile].length,used=new Set();
+      for(const f of p.fixtures)for(let n=0;n<LumaPreviewEngine.channels[f.profile].length;n++)used.add(f.address+n);
+      let address=1;while(address<=513-count&&Array.from({length:count},(_,n)=>address+n).some(n=>used.has(n)))address++;
+      if(address>513-count)throw Error('No free channel block for another light');
+      const names=new Set(p.fixtures.map(f=>f.name));let name,suffix,n=1;
+      do{suffix=n===1?' copy':' copy '+n;name=source.name.slice(0,80-suffix.length)+suffix;n++}while(names.has(name));
+      const f={...source,id:id(),name,address,x:source.x>90?source.x-5:source.x+5,y:source.y>81?source.y-5:source.y+5,level:0,strobe:0};
+      p.fixtures.push(f);for(const s of p.scenes)s.looks[f.id]=this.look(f);
+      this.project=this.validate(p);
+      if(this.fade){this.fade.before[f.id]=this.look(f);this.fade.after[f.id]=this.look(f)}
+      this.active=null;
+      break;
+    }
+    case 'remove_fixture':{
+      const p=this.copy(this.project);
+      if(!p.fixtures.some(f=>f.id===body.id))throw Error('This light no longer exists');
+      if(p.fixtures.length===1)throw Error('Keep at least one light in the project');
+      p.fixtures=p.fixtures.filter(f=>f.id!==body.id);delete p.effects[body.id];
+      for(const s of p.scenes){delete s.looks[body.id];delete s.effects[body.id]}
+      this.project=this.validate(p);
+      for(const kind of Object.keys(FX_PATTERNS))this.fxRuns.delete(body.id+':'+kind);
+      if(this.fade){delete this.fade.before[body.id];delete this.fade.after[body.id]}
+      this.active=null;
+      break;
+    }
     case 'repatch':{const p=this.copy(this.project);if(!Array.isArray(body.addresses)||body.addresses.length!==p.fixtures.length||new Set(body.addresses.map(a=>a.id)).size!==p.fixtures.length)throw Error('Invalid patch plan');for(const f of p.fixtures){const a=body.addresses.find(a=>a.id===f.id);if(!a)throw Error('Incomplete patch plan');f.address=a.address}const next=this.validate(p);this.project=next;break}
     case 'space':this.project.space=this.validateSpace(body.space);break;
     case 'import':this.project=this.validate(body.project);this.fade=null;this.active=null;this.master=.8;this.blackout=false;this.blackoutGain=1;this.blackoutFade=null;this.resetEffects(now);break;
@@ -422,8 +490,8 @@ function renderAll(){
  const p=state.project;selected=new Set([...selected].filter(id=>p.fixtures.some(f=>f.id===id)));
  $('project-title').textContent=p.name.replace('Sunday • Lighting Lab','Sunday service');$('stage-subtitle').textContent=p.fixtures.length+' lights · 1 universe';$('sidebar-count').textContent='· '+p.fixtures.length;
  fixtureElements.forEach(el=>el.remove());fixtureElements.clear();rowElements.clear();$('fixture-list').replaceChildren();
- for(const f of p.fixtures){const b=node('button','fixture'+(/front/i.test(f.zone)?' front':''));b.type='button';b.dataset.fixture=f.id;b.dataset.appearance=fixtureAppearance(f);const [fixtureWidth,fixtureHeight]=fixtureFootprint(f);b.style.width=fixtureWidth+'px';b.style.height=fixtureHeight+'px';b.setAttribute('aria-label',f.name+' · '+FIXTURE_APPEARANCES[b.dataset.appearance]);b.setAttribute('aria-pressed','false');b.append(node('span','beam'),node('span','halo'));const housing=node('span','housing');housing.innerHTML=fixtureArtwork(b.dataset.appearance);b.append(housing,node('span','fixture-name',f.name));b.addEventListener('click',e=>{if(e.detail===0){selectClick(f.id,e.shiftKey||e.metaKey||e.ctrlKey);$('stage').focus({preventScroll:true})}});$('stage').append(b);fixtureElements.set(f.id,b);
-  const row=node('button','fixture-row');row.title=f.name+' · '+FIXTURE_APPEARANCES[b.dataset.appearance]+' · Address '+f.address;const mini=node('span','fixture-mini');mini.innerHTML=fixtureArtwork(b.dataset.appearance);row.append(mini,node('span','',f.name),node('span','address',String(f.address).padStart(3,'0')));row.onclick=e=>{selectClick(f.id,e.shiftKey||e.metaKey||e.ctrlKey);switchTab('stage')};$('fixture-list').append(row);rowElements.set(f.id,row);
+ for(const f of p.fixtures){const b=node('button','fixture'+(/front/i.test(f.zone)?' front':''));b.type='button';b.dataset.fixture=f.id;b.setAttribute('aria-haspopup','menu');b.setAttribute('aria-controls','fixture-context-menu');b.dataset.appearance=fixtureAppearance(f);const [fixtureWidth,fixtureHeight]=fixtureFootprint(f);b.style.width=fixtureWidth+'px';b.style.height=fixtureHeight+'px';b.setAttribute('aria-label',f.name+' · '+FIXTURE_APPEARANCES[b.dataset.appearance]);b.setAttribute('aria-pressed','false');b.append(node('span','beam'),node('span','halo'));const housing=node('span','housing');housing.innerHTML=fixtureArtwork(b.dataset.appearance);b.append(housing,node('span','fixture-name',f.name));b.addEventListener('click',e=>{if(e.detail===0){selectClick(f.id,e.shiftKey||e.metaKey||e.ctrlKey);$('stage').focus({preventScroll:true})}});$('stage').append(b);fixtureElements.set(f.id,b);
+  const row=node('button','fixture-row');row.dataset.fixture=f.id;row.setAttribute('aria-haspopup','menu');row.setAttribute('aria-controls','fixture-context-menu');row.title=f.name+' · '+FIXTURE_APPEARANCES[b.dataset.appearance]+' · Address '+f.address;const mini=node('span','fixture-mini');mini.innerHTML=fixtureArtwork(b.dataset.appearance);row.append(mini,node('span','',f.name),node('span','address',String(f.address).padStart(3,'0')));row.onclick=e=>{selectClick(f.id,e.shiftKey||e.metaKey||e.ctrlKey);switchTab('stage')};$('fixture-list').append(row);rowElements.set(f.id,row);
  }
  $('zone-list').replaceChildren();for(const z of [null,...new Set(p.fixtures.map(f=>f.zone))]){const b=node('button','zone-button');b.dataset.zone=z===null?'__all':z;const ids=p.fixtures.filter(f=>z===null||f.zone===z).map(f=>f.id);b.append(icon(z===null?'selectall':'group'),node('span','',z===null?'All lights':z),node('span','count',String(ids.length)));b.onclick=()=>chooseZone(z);$('zone-list').append(b)}
  renderScenes();$('patch-table').replaceChildren();let count=0;
@@ -498,13 +566,11 @@ $('intensity').oninput=e=>{e.target.style.setProperty('--fill',e.target.value+'%
 $('save-look').onclick=()=>{$('scene-name').value='';$('scene-dialog').showModal();$('scene-name').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 $('scene-form').onsubmit=e=>{e.preventDefault();if(act({op:'save_scene',name:$('scene-name').value,fade:+$('scene-fade').value},true)){$('scene-dialog').close();toast('Scene saved. Export your project to keep it.')}};
 function nextAddress(){const slots=new Set(),count=LumaPreviewEngine.channels[$('fixture-profile').value]?.length||4;for(const f of state.project.fixtures){for(let i=0;i<LumaPreviewEngine.channels[f.profile].length;i++)slots.add(f.address+i)}for(let a=1;a<=513-count;a++)if(Array.from({length:count},(_,i)=>i).every(i=>!slots.has(a+i)))return a;return 1}
-document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{$('fixture-name').value='';$('fixture-address').value=nextAddress();$('fixture-dialog').showModal();$('fixture-name').focus()});
 $('selected-appearance').onchange=e=>{if(e.target.value)act({op:'fixture',ids:[...selected],patch:{appearance:e.target.value}},true)};
-$('fixture-form').onsubmit=e=>{e.preventDefault();if(act({op:'add_fixture',name:$('fixture-name').value,zone:$('fixture-zone').value,profile:$('fixture-profile').value,appearance:$('fixture-appearance').value,address:+$('fixture-address').value},true)){setSelection([state.project.fixtures.at(-1).id]);$('fixture-dialog').close();toast('Light added at zero intensity.')}};
 $('import-project').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>16*1024*1024)throw Error('Project exceeds 16 MiB');const project=JSON.parse(await f.text());if(act({op:'import',project},true)){setSelection(state.project.fixtures.map(f=>f.id));switchTab('stage');dirty=false;$('project-subtitle').textContent='Lighting studio · Imported project';toast('Project opened.')}}catch(err){toast(err.message,true)}e.target.value=''};
 $('export-project').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(localPreview.project,null,2)],{type:'application/json'})),a=node('a');a.href=url;a.download='luma-desk-project.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);dirty=false;$('project-subtitle').textContent='Lighting studio · Project exported';toast('Project exported. Keep the downloaded JSON to reopen it.')};
 for(let start=0;start<512;start+=64){const o=node('option','',(start+1)+'–'+(start+64));o.value=start;$('channel-page').append(o)}$('channel-page').onchange=renderChannels;
-document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,[contenteditable="true"]'))return;if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='a'){e.preventDefault();setSelection(state.project.fixtures.map(f=>f.id));return}if(e.key==='Escape'){if(gesture)finishGesture(true);else setSelection([]);return}if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.key.toLowerCase()==='v')setTool('select');if(e.key.toLowerCase()==='m')setTool('arrange');if(['1','2','3'].includes(e.key))switchTab(['stage','patch','connections'][+e.key-1])});
+document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||!$('fixture-context-menu').hidden||e.target.closest('input,textarea,select,[contenteditable="true"]'))return;if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='a'){e.preventDefault();setSelection(state.project.fixtures.map(f=>f.id));return}if(e.key==='Escape'){if(gesture)finishGesture(true);else setSelection([]);return}if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.key.toLowerCase()==='v')setTool('select');if(e.key.toLowerCase()==='m')setTool('arrange');if(['1','2','3'].includes(e.key))switchTab(['stage','patch','connections'][+e.key-1])});
 renderAll();renderChannels();
 let lastFrame=0,lastPreviewError='';function tick(now){requestAnimationFrame(tick);if(now-lastFrame<16)return;lastFrame=now;try{state=localPreview.snapshot(now/1000);update();lastPreviewError=''}catch(error){const message=error.message||String(error);if(message!==lastPreviewError){console.error('Stage preview:',error);toast('Preview error: '+message,true);lastPreviewError=message}if($('stage-live-status'))$('stage-live-status').textContent='Preview error'}}requestAnimationFrame(tick);
 </script>
@@ -553,7 +619,6 @@ const baseVisual=visual;visual=function(f){if(!moving(f))return baseVisual(f);co
 const baseUpdate=update;update=function(){baseUpdate();for(const f of state.project.fixtures){const e=fixtureElements.get(f.id);if(!e)continue;e.classList.toggle('moving',moving(f));if(moving(f)){const l=state.looks[f.id];e.style.setProperty('--pan-angle',(l.pan-.5)*200+'deg');e.style.setProperty('--beam-height',75+l.tilt*220+'px');e.style.setProperty('--beam-width',(35+l.zoom*170)*l.iris+'px');e.style.setProperty('--beam-blur',1+(1-l.focus)*7+l.frost*12+'px');e.querySelector('.beam').classList.toggle('prism',l.prism>.5);e.querySelector('.beam').classList.toggle('gobo',l.gobo>.2)}}$('playback-status').textContent=state.blackout_fading?(state.blackout?'Fading to black':'Restoring lights'):state.blackout?'Blackout':state.project.scenes.find(s=>s.id===state.active_scene)?.name||'Custom look';$('playback-detail').textContent=state.blackout_fading?Math.round(state.blackout_gain*100)+'% output · '+state.project.blackoutSeconds+'s fade':state.fading?'Scene transition…':'Simulated output';if(document.activeElement!==$('blackout-seconds'))$('blackout-seconds').value=state.project.blackoutSeconds;drawSpace()};
 const baseRender=renderAll;renderAll=function(){baseRender();spaceVersion++;renderSpace()};const baseTab=switchTab;switchTab=function(name){baseTab(name);syncPopover();drawSpace()};
 $('blackout-seconds').onchange=e=>{if(!act({op:'blackout_time',value:Number(e.target.value)}))e.target.value=state.project.blackoutSeconds};
-$('fixture-profile').onchange=()=>{$('fixture-address').value=nextAddress();$('profile-help').textContent=$('fixture-profile').value==='Moving head · preview'?'16-channel synthetic layout for preview only. Physical moving heads require their exact manufacturer profile.':'Match this generic channel order to your fixture’s manual.'};
 for(const b of document.querySelectorAll('[data-discovery]'))b.onclick=()=>$('discovery-dialog').showModal();for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>$(b.dataset.close).close();
 let patchProposal=[];$('auto-patch').onclick=()=>{let address=1;patchProposal=state.project.fixtures.map(f=>{const row={id:f.id,address,name:f.name,old:f.address};address+=LumaPreviewEngine.channels[f.profile].length;return row});$('patch-proposal').replaceChildren();for(const f of patchProposal){const tr=node('tr');for(const v of [f.name,String(f.old).padStart(3,'0'),String(f.address).padStart(3,'0')])tr.append(node('td','',v));$('patch-proposal').append(tr)}$('patch-dialog').showModal()};$('apply-patch').onclick=()=>{if(act({op:'repatch',addresses:patchProposal},true)){$('patch-dialog').close();toast('Preview patch updated. Physical fixture addresses have not changed.')}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){contextOpen=false;syncPopover()}});window.addEventListener('resize',()=>{positionPopover();drawSpace()});window.addEventListener('scroll',positionPopover,{passive:true});if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{drawSpace();positionPopover()}).observe($('stage'));
@@ -674,6 +739,126 @@ setDockView('both');syncDock();renderLiveStage();
 // Start the bundled example once; imported projects keep their own playback settings.
 if(state.project.scenes.some(s=>s.id==='luma-living-light-demo')){$('stage-live-demo').click();dirty=false;$('project-subtitle').textContent='Lighting studio · Live demo';}
 
+</script>
+<script>
+// Per-light shortcuts. The clicked light is always the sole action target.
+const lightMenu=$('fixture-context-menu');
+let lightMenuId=null,lightMenuSource=null,editingFixtureId=null,removingFixtureId=null;
+Object.assign(ICONS,{
+ edit:'<path d="m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5"/>',
+ rename:'<path d="M4 7h9M8 7v12M5 19h6M16 3h5M18.5 3v18M16 21h5"/>',
+ copy:'<rect x="8" y="8" width="13" height="13" rx="3"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',
+ trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>',
+ sliders:'<path d="M4 7h8M16 7h4M4 17h3M11 17h9"/><circle cx="14" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+ stop:'<rect x="5" y="5" width="14" height="14" rx="3"/>'
+});
+function closeLightMenu(restoreFocus=false){
+ if(lightMenu.hidden)return;
+ lightMenu.hidden=true;
+ lightMenuSource?.setAttribute('aria-expanded','false');
+ if(restoreFocus){const target=lightMenuSource?.classList.contains('fixture-row')?rowElements.get(lightMenuId):fixtureElements.get(lightMenuId);(target||$('stage')).focus({preventScroll:true})}
+ lightMenuId=null;lightMenuSource=null;
+}
+function menuAction(label,symbol,action,{disabled=false,danger=false,hint=''}={}){
+ const b=node('button','light-menu-item'+(danger?' danger':''));b.type='button';b.setAttribute('role','menuitem');b.tabIndex=-1;b.disabled=disabled;
+ b.setAttribute('aria-disabled',String(disabled));if(hint)b.title=hint;
+ b.append(node('span','',label),icon(symbol));
+ b.onclick=()=>{if(b.disabled)return;const id=lightMenuId;closeLightMenu(true);action(id)};
+ return b;
+}
+function openLightMenu(id,source,x,y){
+ const f=state.project.fixtures.find(f=>f.id===id);if(!f)return;
+ closeLightMenu();if(gesture)finishGesture(true);
+ contextOpen=false;if(tool==='space')setTool('select');setSelection([id]);switchTab('stage');syncPopover();
+ lightMenuId=id;lightMenuSource=source;source.setAttribute('aria-expanded','true');
+ $('light-menu-name').textContent=f.name;
+ $('light-menu-detail').textContent=FIXTURE_APPEARANCES[fixtureAppearance(f)]+' · Address '+String(f.address).padStart(3,'0');
+ const artwork=$('light-menu-art');artwork.innerHTML=fixtureArtwork(fixtureAppearance(f));
+ const hasEffects=!!Object.keys(state.project.effects[id]||{}).length||f.strobe>0||Object.keys(FX_PATTERNS).some(k=>localPreview.fxRuns.has(id+':'+k));
+ $('light-menu-edit').replaceChildren(
+  menuAction('Adjust light…','sliders',()=>{contextOpen=true;setControlTab('light');syncPopover();$('quick-level').focus({preventScroll:true})}),
+  menuAction('Change light…','lights',fid=>openFixtureEditor(fid,'fixture-appearance')),
+  menuAction('Rename…','rename',fid=>openFixtureEditor(fid))
+ );
+ $('light-menu-organize').replaceChildren(
+  menuAction('Duplicate light','copy',fid=>{if(act({op:'duplicate_fixture',id:fid},true)){const copy=state.project.fixtures.at(-1);setSelection([copy.id]);fixtureElements.get(copy.id).focus({preventScroll:true});toast('Light duplicated at zero intensity.')}} ,{disabled:state.project.fixtures.length>=128,hint:'Creates a separate light at zero intensity'}),
+  menuAction('Move on stage','move',()=>{setTool('arrange');$('stage').focus({preventScroll:true});toast('Drag this light to place it on the stage.')}),
+  menuAction('Select its group','group',()=>{chooseZone(f.zone);$('stage').focus({preventScroll:true})})
+ );
+ $('light-menu-playback').replaceChildren(
+  menuAction('Stop effects','stop',fid=>{if(act({op:'fx_stop',ids:[fid],seconds:1}))toast('Returning this light to its steady look.')},{disabled:!hasEffects,hint:'Fade this light’s effects back to its steady settings'})
+ );
+ $('light-menu-remove').replaceChildren(
+  menuAction('Remove light…','trash',fid=>{
+   removingFixtureId=fid;$('remove-light-name').textContent='Remove “'+f.name+'”?';$('remove-light-error').hidden=true;
+   $('remove-light-dialog').showModal();$('cancel-remove-light').focus();
+  },{danger:true,disabled:state.project.fixtures.length===1,hint:state.project.fixtures.length===1?'Keep at least one light in the project':''})
+ );
+ lightMenu.hidden=false;lightMenu.scrollTop=0;
+ const r=source.getBoundingClientRect();if(x===undefined||y===undefined||(x===0&&y===0)){x=r.right;y=r.top}
+ const w=lightMenu.offsetWidth,h=lightMenu.offsetHeight;
+ lightMenu.style.left=Math.max(12,Math.min(x+6,window.innerWidth-w-12))+'px';
+ lightMenu.style.top=Math.max(12,Math.min(y+6,window.innerHeight-h-12))+'px';
+ lightMenu.querySelector('[role="menuitem"]').focus({preventScroll:true});
+}
+function fixtureDialogHelp(){
+ const profile=$('fixture-profile').value;
+ $('profile-help').textContent=(profile==='Moving head · preview'?'16-channel synthetic layout for preview only. Physical moving heads require their exact manufacturer profile.':'Match this generic channel order to your fixture’s manual.')+(editingFixtureId?' Changing the layout removes unsupported effects from this light and its saved scenes.':'');
+}
+function openFixtureEditor(id=null,focusField='fixture-name'){
+ const f=id?state.project.fixtures.find(f=>f.id===id):null;if(id&&!f)return;
+ closeLightMenu();editingFixtureId=id;
+ $('fixture-dialog-title').textContent=f?'Change your light.':'Add a light.';
+ $('fixture-dialog-description').textContent=f?'Shape changes how it looks on stage. Channel layout describes how it is controlled.':'Choose its channel layout and starting address.';
+ $('fixture-submit').textContent=f?'Save changes':'Add light';$('fixture-form-error').hidden=true;
+ $('fixture-name').value=f?.name||'';$('fixture-zone').value=f?.zone||'Stage wash';
+ $('fixture-profile').value=f?.profile||'RGBW';$('fixture-appearance').value=f?.appearance||'auto';
+ $('fixture-address').value=f?.address||nextAddress();fixtureDialogHelp();
+ $('fixture-dialog').showModal();$(focusField).focus();if(focusField==='fixture-name')$('fixture-name').select?.();
+}
+document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>openFixtureEditor());
+$('fixture-profile').onchange=()=>{if(!editingFixtureId)$('fixture-address').value=nextAddress();fixtureDialogHelp()};
+$('fixture-dialog').addEventListener('close',()=>{editingFixtureId=null});
+$('fixture-form').onsubmit=e=>{
+ e.preventDefault();const id=editingFixtureId,patch={name:$('fixture-name').value,zone:$('fixture-zone').value,profile:$('fixture-profile').value,appearance:$('fixture-appearance').value,address:+$('fixture-address').value};
+ try{
+  state=localPreview.act(id?{op:'edit_fixture',id,patch}:{op:'add_fixture',...patch});markDirty();renderAll();
+  const selectedId=id||state.project.fixtures.at(-1).id;setSelection([selectedId]);$('fixture-dialog').close();editingFixtureId=null;
+  fixtureElements.get(selectedId).focus({preventScroll:true});toast(id?'Light updated. Export your project to keep the changes.':'Light added at zero intensity.');
+ }catch(error){$('fixture-form-error').textContent=error.message;$('fixture-form-error').hidden=false}
+};
+$('confirm-remove-light').onclick=()=>{
+ try{
+  state=localPreview.act({op:'remove_fixture',id:removingFixtureId});markDirty();renderAll();$('remove-light-dialog').close();removingFixtureId=null;
+  $('stage').focus({preventScroll:true});toast('Light removed from the stage and saved scenes.');
+ }catch(error){$('remove-light-error').textContent=error.message;$('remove-light-error').hidden=false}
+};
+document.addEventListener('contextmenu',e=>{
+ if(e.target.closest('dialog'))return;
+ const source=e.target.closest('.fixture,.fixture-row');if(!source)return;
+ e.preventDefault();openLightMenu(source.dataset.fixture,source,e.clientX,e.clientY);
+});
+document.addEventListener('pointerdown',e=>{if(!lightMenu.hidden&&!e.target.closest('#fixture-context-menu'))closeLightMenu()},true);
+document.addEventListener('focusin',e=>{if(!lightMenu.hidden&&!e.target.closest('#fixture-context-menu'))closeLightMenu()});
+// Dismiss on user scrolling, not layout-driven scroll events when selection changes.
+document.addEventListener('wheel',e=>{if(!lightMenu.hidden&&!e.target.closest?.('#fixture-context-menu'))closeLightMenu(true)},{capture:true,passive:true});
+window.addEventListener('resize',()=>closeLightMenu(true));
+window.addEventListener('blur',()=>closeLightMenu());
+document.addEventListener('keydown',e=>{
+ if(document.querySelector('dialog[open]'))return;
+ if(lightMenu.hidden){
+  if(e.key!=='ContextMenu'&&!(e.shiftKey&&e.key==='F10'))return;
+  const source=e.target.closest('.fixture,.fixture-row')||(e.target===$('stage')&&selected.size===1?fixtureElements.get([...selected][0]):null);
+  if(source){e.preventDefault();openLightMenu(source.dataset.fixture,source)}return;
+ }
+ const items=[...lightMenu.querySelectorAll('[role="menuitem"]')].filter(b=>!b.disabled),index=items.indexOf(document.activeElement);
+ if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
+  e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?items.length-1:(index+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;
+  items[next].focus();
+ }else if(e.key==='Escape'){e.preventDefault();closeLightMenu(true)}
+ else if(e.key==='Tab')closeLightMenu(true);
+ else if(e.key==='Enter'||e.key===' '){e.preventDefault();if(index>=0)items[index].click()}
+});
 </script>
 </body>
 </html>

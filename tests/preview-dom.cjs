@@ -89,5 +89,32 @@ $('fixture-name').value='Extra PAR';$('fixture-zone').value='Stage wash';$('fixt
 console.log('PASS: five evenly spaced upright LED bars, distinct fixture SVGs, live emitter colors and brightness, diffused bar optics, full-height drag selection, non-overlapping patch, scene coverage, appearance editing without interrupting effects, shape persistence and legacy import, and Add Light shape selection.');
 `,ctx,{timeout:6000});
 
+vm.runInContext(`
+{
+ const savedProject=localPreview.copy(localPreview.project);performance={now:()=>400000};
+ act({op:'cue',id:'luma-living-light-demo'});setTool('select');setSelection(['f1','f2']);
+ const source=fixtureElements.get('f1');document.dispatch('contextmenu',{target:source.querySelector('.housing'),clientX:1400,clientY:950});
+ assert.equal(lightMenu.hidden,false);assert.equal($('light-menu-name').textContent,'Wash 1');assert.deepEqual([...selected],['f1']);assert.equal(source.getAttribute('aria-expanded'),'true');
+ assert.equal(contextOpen,false);assert.equal(gesture,null);
+ const actions=()=>[...lightMenu.querySelectorAll('[role="menuitem"]')];const action=label=>actions().find(b=>b.textContent===label);
+ assert.equal(document.activeElement,actions()[0]);document.dispatch('keydown',{key:'End',target:document.activeElement});assert.equal(document.activeElement,actions().at(-1));
+ document.dispatch('keydown',{key:'Escape',target:document.activeElement});assert.equal(lightMenu.hidden,true);assert.deepEqual([...selected],['f1']);assert.equal(document.activeElement,source);
+ document.dispatch('keydown',{key:'F10',shiftKey:true,target:source});assert.equal(lightMenu.hidden,false);action('Rename…').click();assert.equal($('fixture-dialog').getAttribute('open'),'');assert.equal(document.activeElement,$('fixture-name'));assert.equal($('fixture-name').value,'Wash 1');
+ const effects=JSON.stringify(localPreview.project.effects);$('fixture-name').value='Choir <wash>';$('fixture-form').dispatch('submit');assert.equal(localPreview.project.fixtures[0].name,'Choir <wash>');assert.equal(JSON.stringify(localPreview.project.effects),effects);
+ openLightMenu('f1',fixtureElements.get('f1'));action('Change light…').click();$('fixture-address').value='5';$('fixture-form').dispatch('submit');assert.equal($('fixture-form-error').hidden,false);assert.match($('fixture-form-error').textContent,/overlap/);assert.equal($('fixture-dialog').getAttribute('open'),'');assert.equal(localPreview.project.fixtures[0].address,1);
+ $('fixture-address').value='1';$('fixture-appearance').value='par';$('fixture-form').dispatch('submit');assert.equal(fixtureElements.get('f1').dataset.appearance,'par');
+ document.dispatch('contextmenu',{target:rowElements.get('f1')});action('Duplicate light').click();const copy=localPreview.project.fixtures.at(-1);assert.equal(copy.level,0);assert.deepEqual([...selected],[copy.id]);assert.equal(fixtureElements.get(copy.id).dataset.appearance,'par');
+ openLightMenu(copy.id,fixtureElements.get(copy.id));assert.equal(action('Stop effects').disabled,true);action('Remove light…').click();assert.equal($('remove-light-dialog').getAttribute('open'),'');$('cancel-remove-light').click();assert(localPreview.project.fixtures.some(f=>f.id===copy.id));
+ openLightMenu(copy.id,fixtureElements.get(copy.id));action('Remove light…').click();$('confirm-remove-light').click();assert(!localPreview.project.fixtures.some(f=>f.id===copy.id));assert.equal($('remove-light-dialog').getAttribute('open'),null);assert.equal(document.activeElement,$('stage'));
+ openLightMenu('f1',fixtureElements.get('f1'));action('Select its group').click();assert.deepEqual([...selected].sort(),state.project.fixtures.filter(f=>f.zone==='Stage wash').map(f=>f.id).sort());
+ openLightMenu('f1',fixtureElements.get('f1'));action('Move on stage').click();assert.equal(tool,'arrange');assert.deepEqual([...selected],['f1']);
+ openLightMenu('f1',fixtureElements.get('f1'));action('Adjust light…').click();assert.equal(contextOpen,true);assert.equal($('fixture-popover').hidden,false);assert.equal(document.activeElement,$('quick-level'));
+ openLightMenu('f1',fixtureElements.get('f1'));action('Stop effects').click();assert.equal(localPreview.project.effects.f1,undefined);assert(localPreview.project.effects.f2.color);
+ openLightMenu('f1',fixtureElements.get('f1'));document.dispatch('pointerdown',{target:$('stage')});assert.equal(lightMenu.hidden,true);
+ act({op:'import',project:savedProject},true);contextOpen=false;setTool('select');syncPopover();
+ console.log('PASS: per-light context menu targets clicked light, keyboard navigation and dismissal, safe rename text, edit validation, sidebar menu, duplicate, cancel/confirm removal, group selection, move, adjust and isolated effect stop.');
+}
+`,ctx,{timeout:6000});
+
 ctx.URL={createObjectURL(){return'blob:test'},revokeObjectURL(){}};
 vm.runInContext(`importPhoto({name:'stage.jpg',type:'image/jpeg',size:3}).then(()=>{assert.equal(state.project.space.mode,'photo');assert.equal(tool,'arrange');assert.equal($('space-photo').hidden,false);console.log('PASS: photo decoding/canvas import workflow with a stub image decoder.');})`,ctx);

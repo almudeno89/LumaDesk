@@ -1,6 +1,6 @@
 # Luma Desk development handoff
 
-Prepared October 13, 2026 from the latest `Luma-Desk-Preview.html` (saved version 6). The delivered `index.html` is an exact copy of that file. This is a project handoff, not a completed migration to a framework or desktop runtime.
+Prepared October 13, 2026 from the latest `Luma-Desk-Preview.html` (saved version 6). The initial `index.html` was an exact copy of that file; subsequent changes are recorded in Git. This is a project handoff, not a completed migration to a framework or desktop runtime.
 
 ## Product intent
 
@@ -23,6 +23,14 @@ The latest completed request moved Effects studio from below the stage to its ow
 - Photo/camera image as a stage reference canvas, OBJ scan geometry as a layout guide, and platform/truss/speaker/screen/drums/person primitives.
 - A Living light demo scene starts on page load, animating washes, bars, and the moving head. It initially selects the moving head so movement controls are immediately available.
 
+### Per-light context menu (October 17, 2026)
+
+Right-click a fixture on the stage or in the sidebar to select only that fixture and open an iOS-inspired frosted menu. It supports Adjust light, Change light, Rename, Duplicate, Move on stage, Select its group, Stop effects, and confirmed removal. Keyboard access uses Shift+F10 or the Context Menu key, arrow navigation, and Escape with focus restored. Outside clicks, wheel scrolling, window blur, and resizing dismiss it.
+
+The shared Add/Change dialog shows validation errors inline. Metadata and appearance edits preserve effect timing. Profile changes clear unsupported current and saved effect layers; channel collisions fail without partial changes. Copies get a free channel block and begin off, without effects, in both the current look and saved scenes. Removal updates all scene looks/effects. Duplication and removal retain the other fixtures' running scene fade. The project must retain at least one fixture. Project format remains v2 and changes still require Export for persistence.
+
+Engine and DOM-shim regression checks cover these operations. Chromium checks at desktop, laptop, and narrow viewport sizes exercise real context-menu events, keyboard focus, editing errors, copy/remove actions, group selection, arrangement, controls, and menu placement. These are browser simulation checks, not physical-lighting tests. Safari on an actual Mac remains untested.
+
 ## Requested ambitions that remain incomplete
 
 - Actual hardware discovery and auto-identification. The current Discovery panel explains RDM requirements; it does not scan devices. Auto-patch only allocates addresses in the project.
@@ -34,13 +42,14 @@ The latest completed request moved Effects studio from below the stage to its ow
 
 ## Architecture and file history
 
-`index.html` contains CSS, markup, and five inline scripts. There is no build step, framework, external font, or CDN dependency. Main components:
+`index.html` contains CSS, markup, and six inline scripts. There is no build step, framework, external font, or CDN dependency. Main components:
 
 1. `LumaPreviewEngine`, fixture artwork helpers, deterministic effect sampling, OBJ parser, and demo project.
 2. Base UI rendering, selection and arrangement, scenes, controls, patch view, project import/export.
 3. Stage guides and objects, contextual fixture controls, blackout timing, and preview discovery/auto-patch UI.
 4. Effects studio controls, presets, waveform, playback, and scene effect indicators.
 5. Evaluated-frame SVG light rendering and right-side Color/Movement/Both inspector.
+6. Per-light context menu, shared fixture editor, and removal confirmation.
 
 The current project format is `luma-desk-v2`; import also accepts `luma-desk-v1`. The engine evaluates base looks, effect layers, scene transitions, and master/blackout gain before building the simulated 512-slot frame. The SVG renderer uses that evaluated state rather than an independent decorative animation.
 
