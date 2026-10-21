@@ -14,6 +14,16 @@ On October 17, 2026, Pablo explicitly approved the version with the per-light iO
 
 An earlier completed request moved Effects studio from below the stage to its own left column because the right-hand inspector obscured the previous layout while scrolling. The left panel now has independent scrolling, a fixed header, and an always-visible action footer. The center holds the stage and scenes, with color and movement controls on the right. Responsive layouts use fewer columns at narrower widths.
 
+## Preset Library · October 21, 2026
+
+The library is a guided entry point to the existing effect engine: 17 curated recipes across Sunday, Color, Movement and Brightness; searchable cards; a capability summary; and an animated pattern illustration using `sampleEffect`. Entry points are the stage heading, Effects studio and the per-light context menu. Selection can be changed inside the library. No project mutations occur while browsing/customizing; Use applies the recipe. Pattern previews respect reduced-motion preferences and stop when the dialog closes. Desktop browsing and editing scroll independently; action buttons remain visible in the detail pane. Mobile uses a single scrolling flow.
+
+`LUMA_PRESETS`, `presetDefaults`, `presetLayer` and capability helpers live in the first script so they are testable without the DOM. `preset_apply` validates the complete recipe/options/selection and a cloned project before changing state. Complete looks replace all supported effect types on selected lights; single-type recipes replace only their own type. Compatibility is based on configured channel profiles, not fixture artwork or hardware discovery. Motion/color offsets use only compatible lights, sorted by stage X/Y/address. Other fixtures, effect phase, global master/blackout/pause and ongoing scene fades are retained. Speed edits preserve phase. Steady looks use effect-release runs to ease back to their new base settings. The synthetic preview profile remains the only supported moving-head profile.
+
+Applied recipes expose a session-only Quick edit card for live speed/brightness/size adjustments, Customize, Save to scene and advanced controls. A fingerprint of the affected looks/effects invalidates stale quick-edit settings after manual edits, cue/import/profile changes or removal, so using a stale recipe cannot overwrite later work. Recipes persist through their ordinary fixture/scene looks and effects; no project-format change or saved library-specific metadata is needed. Reopened projects are editable in the existing Effects studio. Quick edit does not claim to be a permanent custom-preset manager.
+
+The shared scene dialog now offers New scene or an explicit existing-scene target. `update_scene` validates name/fade before replacing that scene's whole-stage looks and effects, retaining its ID and scene count. Saving a scene marks the project dirty; top-bar Save still persists the project in the browser. Tests cover all recipes across mixed profiles, incompatible selection, unchanged other lights/layers/fades, invalid-data atomicity, continuous speed changes, steady-look transitions, scene update/recall and export/import. DOM/browser checks cover no-change browsing, filtering/search, apply/tweak/customize, scene save/reload, context-menu access, keyboard dismissal and mobile layout.
+
 ## Stage reference aiming and pinspot lenses
 
 Every fixture has a persisted `aimEnabled` switch, exposed in the inspector, fixture popup and Add/Change dialog. It defaults to false for fixed lights and true for legacy moving-head profiles. Switching from on to off clears the shared and six per-head reference targets. Moving-head profiles also reset pan/tilt to engine defaults through `aim`, removing only their current motion layer (including release runs) and overriding aim channels in active fades; scene definitions, color and dimmer layers stay intact. This reset occurs on the true→false transition, so unrelated edits to an already-disabled fixture do not reset its look. Static fixtures store an optional normalized `{x,y}` `beamTarget`; pinspot bars store six nullable normalized `pinspotTargets` in original SVG lens order. `pinspotAimMode` defaults to `individual`; its numbered handles independently aim each head. `together` exposes one handle at the centroid of the six evaluated targets. Dragging or keyboard nudging translates all targets by the same amount, clamped as a group at stage boundaries to preserve spacing. The original targets are captured at pointer-down; draft translation never accumulates. Changing modes retains the arrangement and cancels any active drag. The session-only Target to adjust selector can isolate a handle when spots overlap. Fixed targets remain anchored to stage coordinates when the fixture moves, rotates or is flipped. Reset reference targets clears this metadata. Manual moving-head aiming continues to use pan/tilt and stop only that fixture's motion layer.
@@ -101,14 +111,15 @@ Movement and resizing preview locally, committing only on pointer release. Escap
 
 ## Architecture and file history
 
-`index.html` contains CSS, markup, and six inline scripts. There is no build step, framework, external font, or CDN dependency. Main components:
+`index.html` contains CSS, markup, and seven inline scripts. There is no build step, framework, external font, or CDN dependency. Main components:
 
 1. `LumaPreviewEngine`, fixture artwork helpers, deterministic effect sampling, OBJ parser, and demo project.
 2. Base UI rendering, selection and arrangement, scenes, controls, patch view, project import/export.
 3. Space designer, optional physical measurements, stage guides and objects, contextual fixture controls, blackout timing, and preview discovery/auto-patch UI.
 4. Effects studio controls, presets, waveform, playback, and scene effect indicators.
 5. Evaluated-frame SVG light rendering and right-side Color/Movement/Both inspector.
-6. Per-light context menu, shared fixture editor, and removal confirmation.
+6. Per-light context menu, shared fixture editor, removal confirmation and browser saving.
+7. Preset Library browsing/preview, quick adjustments and scene-saving workflow.
 
 The current project format is `luma-desk-v2`; import also accepts `luma-desk-v1`. The engine evaluates base looks, effect layers, scene transitions, and master/blackout gain before building the simulated 512-slot frame. The SVG renderer uses that evaluated state rather than an independent decorative animation.
 

@@ -21,6 +21,17 @@ npm start
 
 Then open `http://127.0.0.1:8770`. The server serves only the preview and its logo, binds to loopback, and sends no DMX commands. `PORT=8771 npm start` selects a different port. No `npm install` is necessary.
 
+## Preset Library
+
+1. Select lights on the stage, then click **Preset Library**. You can also right-click a light → **Preset Library…**, or use **Find a ready-made look** in Effects studio.
+2. Choose a preset: Sunday looks, color flows, moving-head patterns, or brightness rhythms and flashes. The library has 17 ready-made choices, a search box, and a pattern preview. Browsing does not change the stage.
+3. Click **Use on … lights**. **Quick edit** in Effects studio adjusts speed, brightness and movement size live. **Customize** offers colors, timing between lights, direction and ease-in; **More effect controls** opens the existing controls for individual layers.
+4. Click **Save to scene…** to create a scene or explicitly replace an existing one with the whole current stage, including its animations. Then click the top **Save** button to keep your project in this browser.
+
+Complete Sunday looks replace effects on the compatible selected lights. Color, movement and brightness presets replace only their own effect type, so you can combine them. Unselected and incompatible lights keep their settings. The library uses the channel layouts of fixtures already in the project; it does not automatically discover physical hardware. Movement needs a moving-head channel layout, and color needs color channels. A fixed light drawn with a moving-head shape does not gain motors. Blackout, master intensity and the global effects pause remain under your control.
+
+Preset adjustments are saved as ordinary scene looks and effect settings, so existing Open/Export workflows retain them. The Quick edit card is a session shortcut: after reopening or making advanced edits, continue adjusting the saved effect layers in Effects studio.
+
 ## Save your project
 
 Click the blue **Save** button at the top, or press **⌘S** on Mac / **Ctrl+S** on Windows. It saves the entire project in this browser and automatically reopens that save next time you visit the same site. The status shows **Saved in this browser** or **Unsaved changes**. Changes after saving need another Save.

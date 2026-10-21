@@ -259,6 +259,23 @@ vm.runInContext(`
  pinspotHeadView='all';act({op:'import',project:saved},true);setSelection([]);
  console.log('PASS: per-light on/off switch, draft/cancel/commit static targets without channel changes, six independent head targets, default reset, group translation/bounds/cancel/keyboard, lens width/custom settings, overlap head selector, reset and all fixture shapes.');
 }
-`,ctx,{timeout:5000});
+// The expanded UI adds traversal work to this unindexed DOM shim.
+`,ctx,{timeout:10000});
 ctx.URL={createObjectURL(){return'blob:test'},revokeObjectURL(){}};
 vm.runInContext(`importPhoto({name:'stage.jpg',type:'image/jpeg',size:3}).then(()=>{assert.equal(state.project.space.mode,'photo');assert.equal(tool,'arrange');assert.equal($('space-photo').hidden,false);console.log('PASS: photo decoding/canvas import workflow with a stub image decoder.');})`,ctx);
+vm.runInContext(`
+{
+ const saved=localPreview.copy(localPreview.project);act({op:'fx_stop',seconds:0});setTool('select');setSelection([]);
+ const before=JSON.stringify(localPreview.project);$('open-preset-library').click();assert.equal($('preset-library').getAttribute('open'),'');assert.equal($('library-use').disabled,true);assert.equal($('library-lights').hidden,false);assert.equal($('library-cards').children.length,17);
+ $('library-all').click();assert.equal(selected.size,state.project.fixtures.length);const card=id=>[...$('library-cards').children].find(b=>b.dataset.presetId===id);card('ocean').click();assert.equal(JSON.stringify(localPreview.project),before);assert.equal($('library-use').disabled,false);$('library-close').click();assert.equal(JSON.stringify(localPreview.project),before);
+ setSelection(['f1','f9']);$('studio-preset-library').click();card('ocean').click();$('library-speed').value='150';$('library-speed').dispatch('input');$('library-use').click();assert.equal($('preset-library').getAttribute('open'),null);assert.equal(state.project.effects.f9.motion.period,16);assert.equal(state.project.effects.f1.motion,undefined);assert.equal($('preset-live').hidden,false);
+ $('preset-quick-speed').value='200';$('preset-quick-speed').dispatch('input');assert.equal(state.project.effects.f9.motion.period,12);$('preset-quick-brightness').value='40';$('preset-quick-brightness').dispatch('input');assert.equal(state.project.fixtures.find(f=>f.id==='f1').level,.4);
+ $('preset-save-scene').click();const count=state.project.scenes.length;$('scene-name').value='Library scene';$('scene-form').dispatch('submit');assert.equal(state.project.scenes.length,count+1);const scene=state.project.scenes.at(-1);assert.equal(scene.effects.f9.motion.period,12);
+ $('save-look').click();$('scene-target').value=scene.id;$('scene-target').dispatch('change');assert.equal($('scene-name').value,'Library scene');$('scene-name').value='Updated scene';$('scene-form').dispatch('submit');assert.equal(state.project.scenes.length,count+1);assert.equal(state.project.scenes.at(-1).name,'Updated scene');
+ setSelection(['f1']);$('open-preset-library').click();assert.equal(card('slow-sweep').disabled,true);$('library-search').value='zzzz';$('library-search').dispatch('input');assert.equal($('library-cards').children.length,1);assert.equal($('library-cards').firstChild.className,'library-no-results');$('preset-library').dispatch('keydown',{key:'Escape'});assert.equal($('preset-library').getAttribute('open'),null);
+ // Advanced changes invalidate quick-edit recipes so old defaults cannot overwrite them.
+ setSelection(['f9']);openPresetLibrary();$('library-search').value='';renderLibraryCards();card('orbit').click();$('library-use').click();assert.equal($('preset-live').hidden,false);act({op:'fixture',ids:['f9'],patch:{level:.2}});assert.equal($('preset-live').hidden,true);
+ act({op:'import',project:saved},true);setSelection([]);
+ console.log('PASS: library selection/empty states, no-change browsing, mixed capability cards, applying and quick tweaks, create/update scene, search, Escape and advanced-edit invalidation.');
+}
+`,ctx,{timeout:15000});
