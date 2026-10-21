@@ -147,5 +147,46 @@ const st=fresh();st.act({op:'fixture',ids:['f9'],patch:{strobe:.1}},0);assert(st
  e.act({op:'save_scene',name:'Preset scene',fade:2},15);const scene=e.project.scenes.at(-1),id=scene.id;e.act({op:'preset_apply',preset:'celebration',ids:['f1','f9'],options:{colors:['#ff0000','#00ff00','#0000ff'],spread:.8,speed:1.5}},16);e.act({op:'update_scene',id,name:'Custom celebration',fade:1},18);assert.equal(e.project.scenes.at(-1).id,id);assert.equal(e.project.scenes.at(-1).effects.f9.motion.period,8/1.5);const count=e.project.scenes.length,unchanged=JSON.stringify(e.project.scenes);assert.throws(()=>e.act({op:'update_scene',id,name:'',fade:1},19));assert.equal(JSON.stringify(e.project.scenes),unchanged);assert.equal(e.project.scenes.length,count);e.act({op:'fx_stop',seconds:0},19);e.act({op:'cue',id},20);assert.equal(e.project.effects.f9.motion.pattern,'sweep');assert.deepEqual(e.project.effects.f1.color.colors,['#ff0000','#00ff00','#0000ff']);
  console.log('PASS: all 17 library recipes, mixed capabilities, isolated selection and layers, atomic invalid input, continuous speed edits, steady-look fade, preserved other scene fades and new/update scene round trips.');
 }
+// Live edits take control of their own channels without interrupting the rest of a cue.
+{
+ const demo='luma-living-light-demo',start=()=>{const e=fresh();e.act({op:'cue',id:demo},10);return e};
+ const e=start(),reference=start(),savedScenes=JSON.stringify(e.project.scenes),fade=e.fade;
+ const before=e.snapshot(10.4),runs=new Map(e.fxRuns);
+ e.act({op:'aim',ids:['f9']},10.4);
+ assert.equal(e.liveScene,demo);assert.equal(e.snapshot(10.4).scene_edited,true);assert.equal(e.fxPaused,false);assert.equal(e.fade,fade);
+ assert.equal(e.project.effects.f9.motion,undefined);assert(!e.fxRuns.has('f9:motion'));
+ e.act({op:'fixture',ids:['f1'],patch:{level:.4}},10.4);
+ assert.equal(e.project.effects.f1.dimmer,undefined);assert(!e.fxRuns.has('f1:dimmer'));assert.equal(e.fxRuns.get('f1:color'),runs.get('f1:color'));
+ for(const t of [10.4,10.8,11.6,13,20]){
+  const live=e.snapshot(t),original=reference.snapshot(t);
+  close(live.looks.f9.pan,before.looks.f9.pan);close(live.looks.f9.tilt,before.looks.f9.tilt);close(live.looks.f1.level,.4);
+  for(const id of ['f2','f3','f10'])assert.deepEqual(live.looks[id],original.looks[id]);
+  for(const k of ['r','g','b','w']){close(live.looks.f1[k],original.looks.f1[k]);close(live.looks.f9[k],original.looks.f9[k])}
+ }
+ assert.equal(JSON.stringify(e.project.scenes),savedScenes);
+ e.act({op:'fx_pause',value:true},20);e.act({op:'fixture',ids:['f1'],patch:{level:.23}},21);close(e.snapshot(22).looks.f1.level,.23);assert.equal(e.fxPaused,true);
+ e.act({op:'fx_pause',value:false},23);close(e.snapshot(24).looks.f9.pan,before.looks.f9.pan);close(e.snapshot(24).looks.f1.level,.23);
+ e.act({op:'update_scene',id:demo,name:'Edited demo',fade:0},24);assert.equal(e.snapshot(24).scene_edited,false);assert.equal(e.project.scenes.find(s=>s.id===demo).effects.f9.motion,undefined);
+ e.act({op:'fixture',ids:['f1'],patch:{level:.8}},25);e.act({op:'cue',id:demo},26);close(e.snapshot(27).looks.f1.level,.23);close(e.snapshot(27).looks.f9.pan,before.looks.f9.pan);
+ const reopened=new LumaPreviewEngine(e.copy(e.project));close(reopened.snapshot(0).looks.f1.level,.23);assert.equal(reopened.liveScene,null);assert.equal(reopened.project.effects.f9.motion,undefined);
+ e.act({op:'import',project:e.copy(e.project)},27);assert.equal(e.snapshot(27).live_scene,null);assert.equal(e.snapshot(27).scene_edited,false);
+ // Color/beam edits during a fade are immediate and only cancel the matching layer.
+ const color=start(),control=start(),current=color.snapshot(10.3).looks.f9;
+ color.act({op:'fixture',ids:['f9'],patch:{w:.6,zoom:.12,gobo:1}},10.3);
+ assert.equal(color.project.effects.f9.color,undefined);assert(color.project.effects.f9.motion);
+ for(const t of [10.3,10.7,12.5]){const l=color.snapshot(t).looks.f9,ref=control.snapshot(t).looks.f9;close(l.w,.6);close(l.zoom,.12);close(l.gobo,1);for(const k of ['r','g','b'])close(l[k],current[k]);for(const k of ['pan','tilt','level'])close(l[k],ref[k])}
+ // Taking manual control also cancels an in-progress release, including generic pan/tilt edits.
+ color.act({op:'fx_stop',ids:['f9'],kind:'motion',seconds:3},13);const held=color.snapshot(14).looks.f9.tilt;
+ color.act({op:'fixture',ids:['f9'],patch:{pan:.19}},14);assert(!color.fxRuns.has('f9:motion'));close(color.snapshot(20).looks.f9.pan,.19);close(color.snapshot(20).looks.f9.tilt,held);
+ // Effect changes, removals and library recipes preserve other lights' fades and timing.
+ for(const change of [
+  {op:'fx_apply',ids:['f1'],kind:'dimmer',config:{pattern:'pulse',period:4,transition:0,low:.1,high:.8}},
+  {op:'fx_stop',ids:['f1'],seconds:1},
+  {op:'preset_apply',ids:['f1'],preset:'pastels',options:{transition:0}}
+ ]){const live=start(),ref=start(),fading=live.fade;live.act(change,10.3);assert.equal(live.fade,fading);for(const t of [10.3,10.7,11.8,15])assert.deepEqual(live.snapshot(t).looks.f2,ref.snapshot(t).looks.f2)}
+ const bad=start();bad.snapshot(10.3);const original=JSON.stringify(bad.project),runtime=JSON.stringify({fade:bad.fade,runs:[...bad.fxRuns]});
+ for(const body of [{op:'fixture',ids:['f1'],patch:{level:.4,r:2}},{op:'fixture',ids:['f1','missing'],patch:{level:.4}},{op:'fx_apply',ids:['f1'],kind:'color',config:{pattern:'missing'}}]){assert.throws(()=>bad.act(body,20));assert.equal(JSON.stringify(bad.project),original);assert.equal(JSON.stringify({fade:bad.fade,runs:[...bad.fxRuns]}),runtime)}
+ console.log('PASS: live Static holds only selected aim; manual brightness/color/beam overrides, independent cue fades and layers, pause/resume, release cancellation, scene identity, save/recall and atomic invalid live edits.');
+}
 console.log('PASS: continuous brightness/color/motion, cycle bounds and timing, fade-in/out, deterministic flicker, group offsets, movement filtering and DMX values, pause/resume with blackout, tempo continuity, animated scene recall and export, invalid-data atomicity, live strobe and stop-all.');
 `,{console,assert,performance,Set,Map,Math},{timeout:6000});

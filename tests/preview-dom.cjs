@@ -16,7 +16,7 @@ class Element{
  remove(){if(this.parentNode){this.parentNode.children=this.parentNode.children.filter(c=>c!==this);this.parentNode=null}}
  replaceChildren(...cs){this.children=[];this._text='';this.append(...cs)}
  matches(selector){return selector.split(',').some(sel=>{sel=sel.trim();if(sel.startsWith('.'))return this.classList.contains(sel.slice(1));if(sel.startsWith('#'))return this.id===sel.slice(1);const m=sel.match(/^([a-zA-Z]+)?(?:\[([^=\]]+)(?:="?([^"\]]+)"?)?\])?$/);if(!m)return false;if(m[1]&&this.tagName!==m[1].toUpperCase())return false;if(m[2])return Object.hasOwn(this.attributes,m[2])&&(m[3]===undefined||this.attributes[m[2]]===m[3]);return !!m[1]})}
- querySelectorAll(s){return this.children.flatMap(c=>[...(c.matches(s)?[c]:[]),...c.querySelectorAll(s)])}querySelector(s){return this.querySelectorAll(s)[0]||null}closest(s){return this.matches(s)?this:this.parentNode?.closest(s)||null}
+ querySelectorAll(s){return this.children.flatMap(c=>[...(c.matches(s)?[c]:[]),...c.querySelectorAll(s)])}querySelector(s){for(const c of this.children){if(c.matches(s))return c;const match=c.querySelector(s);if(match)return match}return null}closest(s){return this.matches(s)?this:this.parentNode?.closest(s)||null}
  addEventListener(type,fn){(this.listeners[type]??=[]).push(fn)}dispatch(type,extra={}){const e={target:this,currentTarget:this,button:0,pointerId:1,clientX:200,clientY:180,preventDefault(){},stopPropagation(){},...extra};this['on'+type]?.(e);for(const fn of this.listeners[type]||[])fn(e)}click(){this.dispatch('click',{detail:1})}
  focus(){document.activeElement=this}showModal(){this.setAttribute('open','')}close(){this.removeAttribute('open')}
  setPointerCapture(){}releasePointerCapture(){}hasPointerCapture(){return false}
@@ -279,3 +279,24 @@ vm.runInContext(`
  console.log('PASS: library selection/empty states, no-change browsing, mixed capability cards, applying and quick tweaks, create/update scene, search, Escape and advanced-edit invalidation.');
 }
 `,ctx,{timeout:15000});
+vm.runInContext(`
+{
+ const saved=localPreview.copy(localPreview.project),demo='luma-living-light-demo';let now=600000;performance={now:()=>now};
+ act({op:'blackout',value:false,seconds:0});act({op:'cue',id:demo});setTool('select');switchTab('stage');setSelection(['f9']);setDockView('both');
+ now=600400;tick(now);const held={...state.looks.f9};
+ $('dock-pattern').value='none';$('dock-pattern').dispatch('change');
+ assert.equal(state.project.effects.f9.motion,undefined);assert(state.project.effects.f9.color);assert.equal(state.fx_paused,false);
+ assert.equal($('playback-status').textContent,'Living light · edited live');assert.equal(sceneElements.get(demo).querySelector('.scene-state').textContent,'Edited live');
+ assert.equal($('stage-live-demo').textContent,'Restart demo');assert($('stage-live-demo').title.includes('replace live edits'));assert.equal($('stage-live-pause').textContent,'Pause');
+ const wash=JSON.stringify(state.looks.f2),target=liveLightNodes.get('f9').group.getAttribute('data-target-x');
+ now=603000;tick(now);assert.equal(state.looks.f9.pan,held.pan);assert.equal(state.looks.f9.tilt,held.tilt);assert.notEqual(JSON.stringify(state.looks.f2),wash);assert.equal(liveLightNodes.get('f9').group.getAttribute('data-target-x'),target);assert($('stage-live-status').textContent.startsWith('Live'));
+ setSelection(['f1']);$('intensity').value='40';$('intensity').dispatch('input');assert.equal(state.project.effects.f1.dimmer,undefined);assert(state.project.effects.f1.color);
+ now=604000;tick(now);assert.equal(state.looks.f1.level,.4);$('stage-live-pause').click();assert.equal(state.fx_paused,true);
+ now=605000;tick(now);$('stage-live-pause').click();assert.equal(state.fx_paused,false);assert.equal(state.project.effects.f9.motion,undefined);assert.equal(state.looks.f1.level,.4);
+ $('save-look').click();$('scene-name').value='Static during live demo';$('scene-form').dispatch('submit');const scene=state.project.scenes.at(-1);assert.equal(scene.effects.f9.motion,undefined);assert.equal(scene.looks.f1.level,.4);
+ $('stage-live-demo').click();assert(state.project.effects.f9.motion);assert.equal(state.scene_edited,false);assert.equal($('playback-status').textContent,'Living light');
+ act({op:'cue',id:scene.id});now=610000;tick(now);assert.equal(state.project.effects.f9.motion,undefined);assert.equal(state.looks.f9.pan,held.pan);assert.equal(state.looks.f1.level,.4);assert.equal(lastPreviewError,'');
+ act({op:'import',project:saved},true);setSelection([]);
+ console.log('PASS: real control events keep demo live after Static, preserve stage animation/scene feedback, honor intensity, retain edits through pause/resume and scene save/recall, and explicitly restart the saved demo.');
+}
+`,ctx,{timeout:12000});

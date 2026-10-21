@@ -32,6 +32,12 @@ Complete Sunday looks replace effects on the compatible selected lights. Color, 
 
 Preset adjustments are saved as ordinary scene looks and effect settings, so existing Open/Export workflows retain them. The Quick edit card is a session shortcut: after reopening or making advanced edits, continue adjusting the saved effect layers in Effects studio.
 
+## Edit while the stage is live
+
+Live playback stays running while you change lights. **Movement → None / Static** holds the selected moving head at its current aim; its color and brightness effects, and the other lights, keep playing. Manual intensity replaces that light's brightness animation, and a manual color replaces its color animation. Beam controls and new effect settings also take effect during scene transitions without interrupting the other lights.
+
+The scene shows **Edited live** after a change. **Pause / Resume** keeps those changes. **Restart demo** reloads the saved demo settings; clicking any scene recalls that scene's saved settings. To keep your edited version for later scene recall, use **Save look** and choose a new or existing scene, then click the top **Save** button to keep the project in this browser.
+
 ## Save your project
 
 Click the blue **Save** button at the top, or press **⌘S** on Mac / **Ctrl+S** on Windows. It saves the entire project in this browser and automatically reopens that save next time you visit the same site. The status shows **Saved in this browser** or **Unsaved changes**. Changes after saving need another Save.

@@ -14,6 +14,16 @@ On October 17, 2026, Pablo explicitly approved the version with the per-light iO
 
 An earlier completed request moved Effects studio from below the stage to its own left column because the right-hand inspector obscured the previous layout while scrolling. The left panel now has independent scrolling, a fixed header, and an always-visible action footer. The center holds the stage and scenes, with color and movement controls on the right. Responsive layouts use fewer columns at narrower widths.
 
+## Live edits during demo and scene playback · October 21, 2026
+
+Reproducing the reported Static issue showed that `aim` already stopped only the selected motion layer, but clearing `active_scene` replaced the demo label with Custom look. The unchanged Live demo button also re-cued the saved demo and discarded live edits. Separately, manual intensity was still being multiplied by its running dimmer effect, and some live edits cancelled the entire scene fade.
+
+Runtime `liveScene` now retains the last cued scene independently of exact saved-state `active`. Snapshots expose `live_scene` and `scene_edited`; the scene card/footer show Edited live and the loaded demo button reads Restart demo with an explanatory tooltip. Pause/Resume preserves edits. Explicit scene recall reloads saved settings. Updating the currently loaded scene clears its edited indicator; import resets playback identity. This metadata is not stored in project JSON.
+
+`changeFixtures` validates the whole edit before mutation, takes manual control of only matching dimmer/color/motion layers (including release runs), and holds untouched components of an overridden color or aim at their evaluated values. Unrelated layers retain timing. Per-fixture/channel `fade.overrides` make manual controls immediate while preserving other scene fades. The same helper is used for aim, effect apply/remove and library recipes. Master, blackout and explicit effect transitions continue to apply. A manual intensity edit now stops that light's brightness animation; effect-studio and library brightness adjustments continue to adjust their animations.
+
+Regression tests compare untouched lights against uninterrupted playback through and beyond scene transitions, exercise manual control during playback/pause/releases, invalid-edit atomicity, and scene save/recall. DOM checks cover actual control handlers, scene feedback and explicit restart. Chromium checks cover Static, continuing color/other lights, intensity/color/beam edits, Pause/Resume, scene saving/recall, browser Save/reload, and desktop/mobile layouts. This remains visual preview behavior; no hardware output was added.
+
 ## Preset Library · October 21, 2026
 
 The library is a guided entry point to the existing effect engine: 17 curated recipes across Sunday, Color, Movement and Brightness; searchable cards; a capability summary; and an animated pattern illustration using `sampleEffect`. Entry points are the stage heading, Effects studio and the per-light context menu. Selection can be changed inside the library. No project mutations occur while browsing/customizing; Use applies the recipe. Pattern previews respect reduced-motion preferences and stop when the dialog closes. Desktop browsing and editing scroll independently; action buttons remain visible in the detail pane. Mobile uses a single scrolling flow.
